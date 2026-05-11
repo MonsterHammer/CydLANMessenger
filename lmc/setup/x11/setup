@@ -1,0 +1,43 @@
+#!/bin/sh
+set -e
+
+if [ "$1" = "" ]; then
+  echo "Usage: setup <App Version>"
+  echo "eg: setup 1.0.0"
+  exit 1
+fi
+
+QTDIRLIB=$(dirname $(find / $PWD -type f -name "*libQt5Core.so.5*" 2> /dev/null) | head -1) > /dev/null
+
+sudo echo "COPYING FILES..."
+if [ "$PACKAGE_MODE" != "_min" ]; then
+  sudo cp -v $QTDIRLIB/libQt5Core.so.5 ./package/usr/lib/lmc/libQt5Core.so.5
+  sudo cp -v $QTDIRLIB/libQt5Gui.so.5 ./package/usr/lib/lmc/libQt5Gui.so.5
+  sudo cp -v $QTDIRLIB/libQt5Network.so.5 ./package/usr/lib/lmc/libQt5Network.so.5
+  sudo cp -v $QTDIRLIB/libQt5Xml.so.5 ./package/usr/lib/lmc/libQt5Xml.so.5
+  sudo cp -v $QTDIRLIB/libQt5WebKit.so.5 ./package/usr/lib/lmc/libQt5WebKit.so.5
+  sudo cp -v ../../release/libssl.so.1.0.0 ./package/usr/lib/lmc
+  sudo cp -v ../../release/libcrypto.so.1.0.0 ./package/usr/lib/lmc
+  sudo cp -v -r ../../release/imageformats ./package/usr/lib/lmc
+fi
+sudo cp -v ../../release/liblmcapp.so.2 ./package/usr/lib/lmc/liblmcapp.so.2
+sudo cp -v ../../release/lmc.rcc ./package/usr/lib/lmc/lmc.rcc
+sudo cp -v ../../release/lan-messenger ./package/usr/lib/lmc/lan-messenger
+sudo cp -v ../../release/COPYING ./package/usr/lib/lmc/COPYING
+sudo cp -v -r ../../release/lang ./package/usr/lib/lmc
+sudo cp -v -r ../../release/sounds ./package/usr/lib/lmc
+sudo cp -v -r ../../release/themes ./package/usr/lib/lmc
+
+echo "BUILDING PACKAGE..."
+DEB_BUILD_ARCH=$(dpkg-architecture -qDEB_BUILD_ARCH)
+sudo sed -i -e "s/VERSION/$1/g" ./package/DEBIAN/control
+sudo sed -i -e "s/ARCH/$DEB_BUILD_ARCH/g" ./package/DEBIAN/control
+sudo chmod 755 ./package/DEBIAN/postinst
+sudo chmod 755 ./package/DEBIAN/postrm
+sudo chmod 755 ./package/DEBIAN/prerm
+sudo chmod 755 ./package/usr/lib/lmc/lmc.sh
+sudo chmod 755 ./package/usr/lib/lmc/whitelist
+sudo dpkg-deb -z9 -Zlzma -b package ../lmc_$1_$(arch)$PACKAGE_MODE.deb
+
+echo "DONE."
+exit 0
