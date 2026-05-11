@@ -23,6 +23,7 @@
 
 
 #include "usertreewidget.h"
+#include <QPainterPath>
 
 lmcUserTreeWidgetItem::lmcUserTreeWidgetItem() : QTreeWidgetItem(UserType + 1) {
 	//	make item not user checkable
@@ -77,7 +78,6 @@ void lmcUserTreeWidgetDelegate::paint(QPainter* painter, const QStyleOptionViewI
 	static const QColor DISCORD_TEXT = QColor("#dcddde");
 	static const QColor DISCORD_MUTED = QColor("#8e9297");
 	static const QColor DISCORD_HEADER_BG = QColor("#40444b");
-	static const QColor DISCORD_HEADER_BORDER = QColor("#35373d");
 	static const QColor WHITE = QColor("#ffffff");
 
 	QPalette palette = QApplication::palette();
@@ -93,11 +93,10 @@ void lmcUserTreeWidgetDelegate::paint(QPainter* painter, const QStyleOptionViewI
 		painter->fillRect(itemRect, DARK_BG);
 
 		QColor fillColor = DISCORD_HEADER_BG;
-		QColor borderColor = DISCORD_HEADER_BORDER;
-		painter->setPen(QPen(borderColor));
+		painter->setPen(Qt::NoPen);
 		painter->setBrush(QBrush(fillColor));
-		itemRect.adjust(4, 4, -4, -1);
-		painter->drawRect(itemRect);
+		itemRect.adjust(1, 1, -2, -1);
+		painter->drawRoundedRect(itemRect, 2, 2);
 
 		QRect checkBoxRect = pItem->checkBoxRect(itemRect);
 		if(pTreeWidget->checkable())
@@ -142,48 +141,67 @@ void lmcUserTreeWidgetDelegate::paint(QPainter* painter, const QStyleOptionViewI
 		else
 			fillColor = DARK_BG;
 
-		itemRect.adjust(2, 2, -2, -2);
-		painter->fillRect(itemRect, fillColor);
+		painter->setPen(Qt::NoPen);
+		painter->setBrush(QBrush(fillColor));
+		painter->drawRoundedRect(itemRect, 2, 2);
 
-		QRect checkBoxRect = pItem->checkBoxRect(itemRect);
+QRect checkBoxRect = pItem->checkBoxRect(itemRect);
 		if(pTreeWidget->checkable())
 			drawCheckBox(painter, palette, checkBoxRect, pItem->checkState(0));
 
-		QPixmap statusImage = pItem->icon(0).pixmap(QSize(16, 16));
-		int leftPad = checkBoxRect.width() > 0 ? checkBoxRect.right() + 5 : 5;
-		QRect statusRect = itemRect.adjusted(leftPad, padding, 0, 0);
-		statusRect.setSize(statusImage.size());
-		painter->drawPixmap(statusRect, statusImage);
+int contentLeft = itemRect.left() + 5;
+		int contentRight = itemRect.right();
 
-		QRect avatarRect = itemRect.adjusted(itemRect.width(), padding, 0, 0);
 		if(pTreeWidget->view() == ULV_Detailed) {
 			QVariant avatar = pItem->data(0, AvatarRole);
 			if(!avatar.isNull()) {
 				QPixmap avatarImage = ((QIcon)pItem->data(0, AvatarRole).value<QIcon>()).pixmap(32, 32);
-				avatarRect.setLeft(avatarRect.right() - avatarImage.width() - padding);
-				avatarRect.setSize(avatarImage.size());
-				painter->drawPixmap(avatarRect, avatarImage);
+				int avSize = 27;
+				int avX = itemRect.left() + 5;
+				int avY = itemRect.top() + (itemRect.height() - avSize) / 2;
+				QRect avRect(avX, avY, avSize, avSize);
+				QPainterPath clipPath;
+				clipPath.addRoundedRect(avRect, 2, 2);
+				painter->save();
+				painter->setClipPath(clipPath);
+				painter->drawPixmap(avRect, avatarImage.scaled(avSize, avSize, Qt::KeepAspectRatioByExpanding, Qt::SmoothTransformation));
+				painter->restore();
+				contentLeft = avX + avSize + 5;
 			}
 		}
+
+		QPixmap statusImage = pItem->icon(0).pixmap(QSize(16, 16));
+		int statusX = itemRect.right() - 21;
+		int statusY = itemRect.top() + (itemRect.height() - 16) / 2;
+		QRect statusRect(statusX, statusY, 16, 16);
+		contentRight = statusX - 5;
+
+		QVariant note = pItem->data(0, SubtextRole);
+		bool hasNote = pTreeWidget->view() == ULV_Detailed && !note.isNull() && !note.toString().isEmpty();
 
 		painter->setPen(QPen(DISCORD_TEXT));
-		int textFlags = Qt::AlignLeft;
-		textFlags |= (pTreeWidget->view() == ULV_Detailed ? Qt::AlignTop : Qt::AlignVCenter);
-		QRect textRect = itemRect.adjusted(statusRect.right() + 5, padding, -(5 + avatarRect.width() + padding), -padding);
-		QString text = painter->fontMetrics().elidedText(name, Qt::ElideRight, textRect.width());
-		painter->drawText(textRect, textFlags, text);
+		if(hasNote) {
+			QFont normalFont = painter->font();
+			QRect nameRect = QRect(contentLeft, itemRect.top(), contentRight - contentLeft, itemRect.height() / 2);
+			QString text = painter->fontMetrics().elidedText(name, Qt::ElideRight, nameRect.width());
+			painter->drawText(nameRect, Qt::AlignLeft | Qt::AlignVCenter, text);
 
-		if(pTreeWidget->view() == ULV_Detailed) {
-			QVariant note = pItem->data(0, SubtextRole);
-			if(!note.isNull()) {
-				QString userNote = note.toString();
-                painter->setPen(QPen(DISCORD_MUTED));
-				textFlags = Qt::AlignLeft | Qt::AlignBottom;
-				text = painter->fontMetrics().elidedText(userNote, Qt::ElideRight, 
-textRect.width());
-				painter->drawText(textRect, textFlags, text);
-			}
+			painter->setPen(QPen(DISCORD_MUTED));
+			QFont smallFont = normalFont;
+			smallFont.setPixelSize(normalFont.pixelSize() - 1);
+			painter->setFont(smallFont);
+			QRect noteRect = QRect(contentLeft, itemRect.top() + itemRect.height() / 2, contentRight - contentLeft, itemRect.height() / 2);
+			QString userNote = note.toString();
+			text = painter->fontMetrics().elidedText(userNote, Qt::ElideRight, noteRect.width());
+			painter->drawText(noteRect, Qt::AlignLeft | Qt::AlignVCenter, text);
+			painter->setFont(normalFont);
+		} else {
+			QRect textRect = QRect(contentLeft, itemRect.top(), contentRight - contentLeft, itemRect.height());
+			QString text = painter->fontMetrics().elidedText(name, Qt::ElideRight, textRect.width());
+			painter->drawText(textRect, Qt::AlignLeft | Qt::AlignVCenter, text);
 		}
+
+		painter->drawPixmap(statusRect, statusImage);
 
 		// Draw unread badge
 		int unreadCount = pItem->data(0, UnreadRole).toInt();

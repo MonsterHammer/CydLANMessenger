@@ -105,9 +105,11 @@ void lmcMainWindow::init(User* pLocalUser, QList<Group>* pGroupList, bool connec
 	createGroupMenu();
 	createUserMenu();
 
+	ui.leftPanelLayout->setContentsMargins(5, 5, 5, 5);
+	ui.tvUserList->setFocusPolicy(Qt::NoFocus);
 	ui.tvUserList->setStyleSheet(
-		"lmcUserTreeWidget { background: #2f3136; }"
-		"lmcUserTreeWidget::viewport { padding: 4px; background: #2f3136; }"
+		"lmcUserTreeWidget { background: #2f3136; border-radius: 2px; }"
+		"lmcUserTreeWidget::item:focus { outline: none; }"
 	);
 
 	ui.lblDividerTop->setBackgroundRole(QPalette::Highlight);
@@ -952,13 +954,16 @@ void lmcMainWindow::createToolBar(void) {
 	searchBar = new QLineEdit(ui.leftPanel);
 	searchBar->setPlaceholderText(tr("Search contacts..."));
 	searchBar->setClearButtonEnabled(true);
-	searchBar->setFixedHeight(28);
+	searchBar->setFixedHeight(30);
 	searchBar->setStyleSheet(
-		"QLineEdit { background: #202225; border: 1px solid #040405; border-radius: 4px; "
-		"padding: 4px 6px; color: #dcddde; }"
+		"QLineEdit { background: #202225; border: 1px solid #040405; border-radius: 2px; "
+		"padding: 4px 6px; color: #dcddde; margin: 3px; }"
 		"QLineEdit:focus { border-color: #7289da; }"
 	);
 	connect(searchBar, SIGNAL(textChanged(const QString&)), this, SLOT(searchBar_textChanged(const QString&)));
+	QWidget* searchSpacer = new QWidget(ui.leftPanel);
+	searchSpacer->setFixedHeight(5);
+	ui.leftPanelLayout->addWidget(searchSpacer);
 	ui.leftPanelLayout->addWidget(searchBar);
 }
 
@@ -1040,7 +1045,7 @@ void lmcMainWindow::initGroups(QList<Group>* pGroupList) {
 		pItem->setData(0, IdRole, pGroupList->value(index).id);
 		pItem->setData(0, TypeRole, "Group");
 		pItem->setText(0, pGroupList->value(index).name);
-		pItem->setSizeHint(0, QSize(0, 22));
+		pItem->setSizeHint(0, QSize(0, 30));
 		ui.tvUserList->addTopLevelItem(pItem);
 	}
 
