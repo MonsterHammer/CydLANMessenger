@@ -981,10 +981,10 @@ void lmcMainWindow::createToolBar(void) {
 	searchBar = new QLineEdit(ui.leftPanel);
 	searchBar->setPlaceholderText(tr("Search contacts..."));
 	searchBar->setClearButtonEnabled(true);
-	searchBar->setFixedHeight(30);
+	searchBar->setFixedHeight(36);
 	searchBar->setStyleSheet(
 		"QLineEdit { background: #202225; border: 1px solid #040405; border-radius: 2px; "
-		"padding: 4px 6px; color: #dcddde; margin: 3px; }"
+		"padding: 4px 6px; color: #dcddde; }"
 		"QLineEdit:focus { border-color: #7289da; }"
 	);
 	connect(searchBar, SIGNAL(textChanged(const QString&)), this, SLOT(searchBar_textChanged(const QString&)));
