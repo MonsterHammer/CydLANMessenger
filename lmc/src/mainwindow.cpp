@@ -34,6 +34,7 @@
 #include <QRegularExpression>
 #include <QFont>
 #include <QColor>
+#include <QTreeWidgetItemIterator>
 #include "mainwindow.h"
 #include "messagelog.h"
 #include "history.h"
@@ -103,6 +104,11 @@ void lmcMainWindow::init(User* pLocalUser, QList<Group>* pGroupList, bool connec
 
 	createGroupMenu();
 	createUserMenu();
+
+	ui.tvUserList->setStyleSheet(
+		"lmcUserTreeWidget { background: #2f3136; }"
+		"lmcUserTreeWidget::viewport { padding: 4px; background: #2f3136; }"
+	);
 
 	ui.lblDividerTop->setBackgroundRole(QPalette::Highlight);
 	ui.lblDividerTop->setAutoFillBackground(true);
@@ -371,7 +377,8 @@ void lmcMainWindow::settingsChanged(bool init) {
 	QFont font = QApplication::font();
 	font.fromString(pSettings->value(IDS_FONT, IDS_FONT_VAL).toString());
 	pInlineMessageLog->setFont(font);
-	inlineMessageColor = QColor::fromString(pSettings->value(IDS_COLOR, IDS_COLOR_VAL).toString());
+	inlineMessageColor = QColor("#ffffff");
+	ui.txtChatMessage->setStyleSheet("QTextEdit {color: #ffffff;}");
 	QString themePath = pSettings->value(IDS_THEME, IDS_THEME_VAL).toString();
 	pInlineMessageLog->initMessageLog(themePath);
 }
@@ -550,6 +557,20 @@ void lmcMainWindow::publicChatAction_triggered(void) {
 	emit showPublicChat();
 }
 
+void lmcMainWindow::searchBar_textChanged(const QString& text) {
+	for(int top = 0; top < ui.tvUserList->topLevelItemCount(); top++) {
+		QTreeWidgetItem* group = ui.tvUserList->topLevelItem(top);
+		int visibleCount = 0;
+		for(int i = 0; i < group->childCount(); i++) {
+			QTreeWidgetItem* user = group->child(i);
+			bool match = text.isEmpty() || user->text(0).contains(text, Qt::CaseInsensitive);
+			user->setHidden(!match);
+			if(match) visibleCount++;
+		}
+		group->setHidden(visibleCount == 0);
+	}
+}
+
 void lmcMainWindow::refreshAction_triggered(void) {
     QString szUserId;
     QString szMessage;
@@ -648,8 +669,8 @@ void lmcMainWindow::tvUserList_itemDragDropped(QTreeWidgetItem* pItem) {
 void lmcMainWindow::tvUserList_currentItemChanged(QTreeWidgetItem *pCurrent, QTreeWidgetItem *pPrevious) {
 	Q_UNUSED(pPrevious);
 	bool bEnabled = (pCurrent && pCurrent->data(0, TypeRole).toString().compare("User") == 0);
-	toolChatAction->setEnabled(bEnabled);
-	toolFileAction->setEnabled(bEnabled);
+	toolChatButton->setEnabled(bEnabled);
+	toolFileButton->setEnabled(bEnabled);
 }
 
 void lmcMainWindow::groupAddAction_triggered(void) {
@@ -897,36 +918,48 @@ void lmcMainWindow::createToolBar(void) {
 	btnStatus->setIconSize(QSize(20, 20));
 	btnStatus->setPopupMode(QToolButton::InstantPopup);
 
-	QToolBar* pToolBar = new QToolBar(ui.wgtToolBar);
-	pToolBar->setIconSize(QSize(40, 20));
-	ui.toolBarLayout->addWidget(pToolBar);
+	auto addBtn = [&](QIcon icon, QString tip, const char* slot) -> QToolButton* {
+		QToolButton* btn = new QToolButton(ui.wgtToolBar);
+		btn->setIcon(icon);
+		btn->setIconSize(QSize(40, 20));
+		btn->setToolButtonStyle(Qt::ToolButtonIconOnly);
+		btn->setAutoRaise(false);
+		btn->setToolTip(tip);
+		QObject::connect(btn, SIGNAL(clicked()), this, slot);
+		ui.toolBarLayout->addWidget(btn);
+		return btn;
+	};
+	auto addSpacer = [&](int w) {
+		QWidget* sp = new QWidget(ui.wgtToolBar);
+		sp->setFixedWidth(w);
+		ui.toolBarLayout->addWidget(sp);
+	};
 
-	pToolBar->setToolButtonStyle(Qt::ToolButtonIconOnly);
-	toolChatAction = pToolBar->addAction(QIcon(QPixmap(IDR_CHAT, "PNG")), "&Conversation",
-		this, SLOT(userConversationAction_triggered()));
-	toolChatAction->setEnabled(false);
-	toolFileAction = pToolBar->addAction(QIcon(QPixmap(IDR_FILE, "PNG")), "Send &File",
-		this, SLOT(userFileAction_triggered()));
-	toolFileAction->setEnabled(false);
-	pToolBar->addSeparator();
-	toolBroadcastAction = pToolBar->addAction(QIcon(QPixmap(IDR_BROADCASTMSG, "PNG")), "Send &Broadcast Message",
-		this, SLOT(userBroadcastAction_triggered()));
-	pToolBar->addSeparator();
-	toolChatRoomAction = pToolBar->addAction(QIcon(QPixmap(IDR_NEWCHATROOM, "PNG")), "&New Chat Room",
-		this, SLOT(chatRoomAction_triggered()));
-	toolPublicChatAction = pToolBar->addAction(QIcon(QPixmap(IDR_CHATROOM, "PNG")), "&Public Chat",
-		this, SLOT(publicChatAction_triggered()));
+	toolChatButton = addBtn(QIcon(QPixmap(IDR_CHAT, "PNG")), tr("&Conversation"), SLOT(userConversationAction_triggered()));
+	toolChatButton->setEnabled(false);
+	addSpacer(6);
+	toolFileButton = addBtn(QIcon(QPixmap(IDR_FILE, "PNG")), tr("Send &File"), SLOT(userFileAction_triggered()));
+	toolFileButton->setEnabled(false);
+	addSpacer(6);
+	toolBroadcastButton = addBtn(QIcon(QPixmap(IDR_BROADCASTMSG, "PNG")), tr("Send &Broadcast Message"), SLOT(userBroadcastAction_triggered()));
+	addSpacer(6);
+	toolChatRoomButton = addBtn(QIcon(QPixmap(IDR_NEWCHATROOM, "PNG")), tr("&New Chat Room"), SLOT(chatRoomAction_triggered()));
+	addSpacer(6);
+	toolPublicChatButton = addBtn(QIcon(QPixmap(IDR_CHATROOM, "PNG")), tr("&Public Chat"), SLOT(publicChatAction_triggered()));
+	addSpacer(6);
+	toolRefreshButton = addBtn(QIcon(QPixmap(IDR_REFRESH, "PNG")), tr("&Refresh Contacts"), SLOT(refreshAction_triggered()));
 
-	QToolButton* pButton = (QToolButton*)pToolBar->widgetForAction(toolChatAction);
-	pButton->setAutoRaise(false);
-	pButton = (QToolButton*)pToolBar->widgetForAction(toolFileAction);
-	pButton->setAutoRaise(false);
-	pButton = (QToolButton*)pToolBar->widgetForAction(toolBroadcastAction);
-	pButton->setAutoRaise(false);
-	pButton = (QToolButton*)pToolBar->widgetForAction(toolChatRoomAction);
-	pButton->setAutoRaise(false);
-	pButton = (QToolButton*)pToolBar->widgetForAction(toolPublicChatAction);
-	pButton->setAutoRaise(false);
+	searchBar = new QLineEdit(ui.leftPanel);
+	searchBar->setPlaceholderText(tr("Search contacts..."));
+	searchBar->setClearButtonEnabled(true);
+	searchBar->setFixedHeight(28);
+	searchBar->setStyleSheet(
+		"QLineEdit { background: #202225; border: 1px solid #040405; border-radius: 4px; "
+		"padding: 4px 6px; color: #dcddde; }"
+		"QLineEdit:focus { border-color: #7289da; }"
+	);
+	connect(searchBar, SIGNAL(textChanged(const QString&)), this, SLOT(searchBar_textChanged(const QString&)));
+	ui.leftPanelLayout->addWidget(searchBar);
 }
 
 void lmcMainWindow::setUIText(void) {
@@ -966,11 +999,13 @@ void lmcMainWindow::setUIText(void) {
     userFolderAction->setText(tr("Send Fol&der"));
 	userInfoAction->setText(tr("Get &Information"));
 	avatarBrowseAction->setText(tr("&Browse for more pictures..."));
-	toolChatAction->setText(tr("&Conversation"));
-	toolFileAction->setText(tr("Send &File"));
-	toolBroadcastAction->setText(tr("Send &Broadcast Message"));
-	toolChatRoomAction->setText(tr("&New Chat Room"));
-	toolPublicChatAction->setText(tr("&Public Chat"));
+	toolChatButton->setToolTip(tr("&Conversation"));
+	toolFileButton->setToolTip(tr("Send &File"));
+	toolBroadcastButton->setToolTip(tr("Send &Broadcast Message"));
+	toolChatRoomButton->setToolTip(tr("&New Chat Room"));
+	toolPublicChatButton->setToolTip(tr("&Public Chat"));
+	toolRefreshButton->setToolTip(tr("&Refresh Contacts"));
+	searchBar->setPlaceholderText(tr("Search contacts..."));
 
 	for(int index = 0; index < statusGroup->actions().count(); index++)
 		statusGroup->actions()[index]->setText(lmcStrings::statusDesc()[index]);
@@ -1219,11 +1254,45 @@ void lmcMainWindow::initInlineChat(void) {
 	pInlineMessageLog->installEventFilter(this);
 	ui.txtChatMessage->installEventFilter(this);
 
+	// Add send button next to the inline chat message input
+	QWidget* parentW = ui.txtChatMessage->parentWidget();
+	QVBoxLayout* parentLayoutInl = qobject_cast<QVBoxLayout*>(parentW->layout());
+	if (parentLayoutInl) {
+		int msgIdxInl = -1;
+		for (int i = 0; i < parentLayoutInl->count(); ++i) {
+			if (parentLayoutInl->itemAt(i)->widget() == ui.txtChatMessage) {
+				msgIdxInl = i;
+				break;
+			}
+		}
+		if (msgIdxInl >= 0) {
+			QLayoutItem* msgItemInl = parentLayoutInl->takeAt(msgIdxInl);
+			QHBoxLayout* sendLayoutInl = new QHBoxLayout();
+			sendLayoutInl->setContentsMargins(0, 0, 0, 0);
+			sendLayoutInl->setSpacing(0);
+			sendLayoutInl->addWidget(ui.txtChatMessage, 1);
+			QToolButton* btnSendInl = new QToolButton();
+			btnSendInl->setObjectName("btnSend");
+			btnSendInl->setFixedSize(36, 36);
+			btnSendInl->setCursor(Qt::PointingHandCursor);
+			btnSendInl->setText(QString::fromUtf8("\xe2\x9e\xa4"));
+			QFont sendFontInl = btnSendInl->font();
+			sendFontInl.setPointSize(14);
+			btnSendInl->setFont(sendFontInl);
+			btnSendInl->setToolTip(tr("Send"));
+			sendLayoutInl->addWidget(btnSendInl);
+			parentLayoutInl->insertLayout(msgIdxInl, sendLayoutInl);
+			delete msgItemInl;
+			connect(btnSendInl, &QToolButton::clicked, this, &lmcMainWindow::inlineSendMessage);
+		}
+	}
+
 	inlineLocalId = QString();
 	inlinePeerId = QString();
 	inlinePeerName = QString();
-	inlineMessageColor = QColor("#dcddde");
+	inlineMessageColor = QColor("#ffffff");
 	inlineShowSmiley = true;
+	ui.txtChatMessage->setStyleSheet("QTextEdit {color: #ffffff;}");
 	inlineFontSizeVal = 0;
 	currentChatPeer = QString();
 	nSmiley = 0;
@@ -1248,6 +1317,10 @@ void lmcMainWindow::showInlineChat(QString* lpszUserId) {
 		ui.rightPanel->setCurrentIndex(0);
 		return;
 	}
+
+	// Clear unread count for this user
+	pItem->setData(0, UnreadRole, 0);
+	ui.tvUserList->update();
 
 	QString userName = pItem->text(0);
 	int statusIndex = pItem->data(0, StatusRole).toInt();
@@ -1295,7 +1368,23 @@ void lmcMainWindow::showInlineChat(QString* lpszUserId) {
 }
 
 void lmcMainWindow::inlineReceiveMessage(QString* lpszUserId, QString* lpszUserName, MessageType type, XmlMessage* pMessage) {
-	if(!lpszUserId || currentChatPeer != *lpszUserId) {
+	if(!lpszUserId || *lpszUserId == pLocalUser->id)
+		return;
+
+	if(currentChatPeer != *lpszUserId) {
+		// Message is for a different user — increment unread count
+		if(type == MT_Message || type == MT_File || type == MT_Folder) {
+			QTreeWidgetItemIterator it(ui.tvUserList);
+			while(*it) {
+				if((*it)->data(0, TypeRole).toString() == "User" &&
+					(*it)->data(0, IdRole).toString() == *lpszUserId) {
+					int count = (*it)->data(0, UnreadRole).toInt() + 1;
+					(*it)->setData(0, UnreadRole, count);
+					break;
+				}
+				++it;
+			}
+		}
 		return;
 	}
 

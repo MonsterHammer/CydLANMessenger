@@ -136,6 +136,39 @@ void lmcChatWindow::init(User* pLocalUser, User* pRemoteUser, bool connected) {
 	ui.txtMessage->setStyleSheet("QTextEdit {color: " + messageColor.name() + ";}");
 	ui.txtMessage->setFocus();
 
+	// Add send button next to the message input
+	QWidget* parentW = ui.txtMessage->parentWidget();
+	QVBoxLayout* parentLayout = qobject_cast<QVBoxLayout*>(parentW->layout());
+	if (parentLayout) {
+		int msgIdx = -1;
+		for (int i = 0; i < parentLayout->count(); ++i) {
+			if (parentLayout->itemAt(i)->widget() == ui.txtMessage) {
+				msgIdx = i;
+				break;
+			}
+		}
+		if (msgIdx >= 0) {
+			QLayoutItem* msgItem = parentLayout->takeAt(msgIdx);
+			QHBoxLayout* sendLayout = new QHBoxLayout();
+			sendLayout->setContentsMargins(0, 0, 0, 0);
+			sendLayout->setSpacing(0);
+			sendLayout->addWidget(ui.txtMessage, 1);
+			QToolButton* btnSend = new QToolButton();
+			btnSend->setObjectName("btnSend");
+			btnSend->setFixedSize(36, 36);
+			btnSend->setCursor(Qt::PointingHandCursor);
+			btnSend->setText(QString::fromUtf8("\xe2\x9e\xa4"));
+			QFont sendFont = btnSend->font();
+			sendFont.setPointSize(14);
+			btnSend->setFont(sendFont);
+			btnSend->setToolTip(tr("Send"));
+			sendLayout->addWidget(btnSend);
+			parentLayout->insertLayout(msgIdx, sendLayout);
+			delete msgItem;
+			connect(btnSend, &QToolButton::clicked, this, &lmcChatWindow::sendMessage);
+		}
+	}
+
 	QString themePath = pSettings->value(IDS_THEME, IDS_THEME_VAL).toString();
 	pMessageLog->initMessageLog(themePath);
     if(!clearOnClose)

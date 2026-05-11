@@ -645,17 +645,27 @@ void lmcCore::routeMessage(MessageType type, QString* lpszUserId, XmlMessage* pM
                 if(chatWindows[index]->peerIds.contains(*lpszUserId)
                         || chatWindows[index]->localId.compare(*lpszUserId) == 0)
 					chatWindows[index]->receiveMessage(type, lpszUserId, pMessage);
+			// Always route to inline chat
+			{
+				User* pUser = pMessaging->getUser(lpszUserId);
+				QString userName = pUser ? pUser->name : *lpszUserId;
+				pMainWindow->inlineReceiveMessage(lpszUserId, &userName, type, pMessage);
+			}
 			break;
 		default:
 			for(int index = 0; index < chatWindows.count(); index++) {
                 if(chatWindows[index]->peerIds.contains(*lpszUserId)
                         && chatWindows[index]->threadId == threadId) {
 					chatWindows[index]->receiveMessage(type, lpszUserId, pMessage);
-					if(needsNotice)
-						showChatWindow(chatWindows[index], messageTop, needsNotice);
 					windowExists = true;
 					break;
 				}
+			}
+			// Route to inline chat for all message types
+			if(needsNotice) {
+				User* pUser = pMessaging->getUser(lpszUserId);
+				QString userName = pUser ? pUser->name : *lpszUserId;
+				pMainWindow->inlineReceiveMessage(lpszUserId, &userName, type, pMessage);
 			}
 			break;
 		}
@@ -663,11 +673,11 @@ void lmcCore::routeMessage(MessageType type, QString* lpszUserId, XmlMessage* pM
 
 	//	create a new window if no chat window with this user exists and the
 	//	incoming message is of type that needs notice
-	if(!windowExists && needsNotice) {
-		createChatWindow(lpszUserId);
-		chatWindows.last()->receiveMessage(type, lpszUserId, pMessage);
-		if(needsNotice)
-			showChatWindow(chatWindows.last(), messageTop, needsNotice);
+	if(!windowExists && needsNotice && lpszUserId) {
+		// Route incoming messages to the main window's inline chat
+		User* pUser = pMessaging->getUser(lpszUserId);
+		QString userName = pUser ? pUser->name : *lpszUserId;
+		pMainWindow->inlineReceiveMessage(lpszUserId, &userName, type, pMessage);
 	}
 }
 

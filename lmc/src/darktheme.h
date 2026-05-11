@@ -303,6 +303,22 @@ static const QString DARK_THEME_QSS = QStringLiteral(R"(
         width: 0px;
     }
 
+    /* --- Send Button --- */
+    QToolButton#btnSend {
+        background-color: #5865f2;
+        color: #ffffff;
+        border: none;
+        border-radius: 0px;
+        padding: 0px;
+        margin: 0px;
+    }
+    QToolButton#btnSend:hover {
+        background-color: #4752c4;
+    }
+    QToolButton#btnSend:pressed {
+        background-color: #3c45a5;
+    }
+
     /* --- Status Popup Menu --- */
     QMenu#statusMenu {
         background-color: #2f3136;

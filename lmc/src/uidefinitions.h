@@ -92,8 +92,9 @@ enum ItemDataRole {
 	DataRole,	//	Custom data associated with the item
 	StatusRole,	//	Status of the User
 	AvatarRole,	//	Avatar image of the User
-    SubtextRole,//	Subtext to be displayed on the item
-    CapsRole    //  The capabilities of the user
+	SubtextRole,//	Subtext to be displayed on the item
+    CapsRole,   //  The capabilities of the user
+    UnreadRole  //  Unread message count
 };
 
 //	font size definitions

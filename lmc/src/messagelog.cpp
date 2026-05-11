@@ -60,18 +60,22 @@ lmcMessageLog::lmcMessageLog(QWidget *parent) : QMessageBrowser (parent) {
 	autoScroll = true;
 
 	document()->setDefaultStyleSheet(
-	    "a { color: #5865f2; text-decoration: none; }"
+	    "a { color: #00aff4; text-decoration: none; }"
 	    "a:hover { text-decoration: underline; }"
-	    ".msg { padding: 4px 16px; }"
+	    ".msg { padding: 1px 16px; }"
 	    ".msg:hover { background-color: #32353b; }"
-	    ".msg .avatar { margin: 4px 8px 8px 0; }"
-	    ".msg .username { color: #ffffff; font-weight: 600; font-size: 10pt; }"
-	    ".msg .timestamp { color: #72767d; font-size: 8pt; margin-left: 8px; }"
-	    ".msg .message { color: #dcddde; font-size: 10pt; word-wrap: break-word; }"
-	    ".msg.status .status-text { color: #8e9297; font-size: 9pt; }"
+	    ".msg.incoming { text-align: left; }"
+	    ".msg.outgoing { text-align: right; }"
+	    ".bubble { display: inline-block; max-width: 70%; text-align: left; padding: 7px 12px; word-wrap: break-word; border-radius: 2px; }"
+	    ".bubble.incoming { background-color: #40444b; color: #dcddde; }"
+	    ".bubble.outgoing { background-color: #5865f2; color: #ffffff; }"
+	    ".bubble .username { color: #ffffff; font-weight: 600; font-size: 9pt; display: block; margin-bottom: 2px; }"
+	    ".bubble .message { color: inherit; font-size: 10pt; word-wrap: break-word; }"
+	    ".bubble .timestamp { color: rgba(255,255,255,0.5); font-size: 7pt; display: block; text-align: right; margin-top: 3px; }"
+	    ".msg.status .status-text { color: #8e9297; font-size: 9pt; text-align: center; }"
 	    ".msg.broadcast .broadcast-label { color: #faa61a; }"
 	    ".msg .links { margin-top: 6px; }"
-	    ".msg .links a { color: #5865f2; text-decoration: none; margin-right: 12px; font-weight: 600; }"
+	    ".msg .links a { color: #00aff4; text-decoration: none; margin-right: 12px; font-weight: 600; }"
 	    ".msg.Nth { padding-top: 1px; }"
 	);
 }

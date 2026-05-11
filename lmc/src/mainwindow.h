@@ -42,6 +42,8 @@
 #include <QMessageBox>
 #include <QFileDialog>
 #include <QToolButton>
+#include <QTimer>
+#include <QLineEdit>
 #include <QStackedWidget>
 #include <QTextEdit>
 #include <QLabel>
@@ -121,6 +123,7 @@ private slots:
 	void updateAction_triggered(void);
 	void chatRoomAction_triggered(void);
 	void publicChatAction_triggered(void);
+	void searchBar_textChanged(const QString& text);
 	void refreshAction_triggered(void);
 	void trayIcon_activated(QSystemTrayIcon::ActivationReason reason);
 	void trayMessage_clicked(void);
@@ -191,11 +194,13 @@ private:
 	QMenu* pGroupMenu;
 	QMenu* pUserMenu;
 	QToolButton* btnStatus;
-	QAction* toolChatAction;
-	QAction* toolFileAction;
-	QAction* toolBroadcastAction;
-	QAction* toolChatRoomAction;
-	QAction* toolPublicChatAction;
+	QToolButton* toolChatButton;
+	QToolButton* toolFileButton;
+	QToolButton* toolBroadcastButton;
+	QToolButton* toolChatRoomButton;
+	QToolButton* toolPublicChatButton;
+	QToolButton* toolRefreshButton;
+	QLineEdit* searchBar;
 	User* pLocalUser;
 	bool bConnected;
 	int nAvatar;

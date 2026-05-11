@@ -96,7 +96,7 @@ void lmcUserTreeWidgetDelegate::paint(QPainter* painter, const QStyleOptionViewI
 		QColor borderColor = DISCORD_HEADER_BORDER;
 		painter->setPen(QPen(borderColor));
 		painter->setBrush(QBrush(fillColor));
-		itemRect.adjust(1, 1, -2, -1);
+		itemRect.adjust(4, 4, -4, -1);
 		painter->drawRect(itemRect);
 
 		QRect checkBoxRect = pItem->checkBoxRect(itemRect);
@@ -128,29 +128,22 @@ void lmcUserTreeWidgetDelegate::paint(QPainter* painter, const QStyleOptionViewI
 		QString text = painter->fontMetrics().elidedText(name, Qt::ElideRight, textRect.width());
 		painter->drawText(textRect, textFlags, text);
 	} else if(type == "User") {
-		QColor fillColor, borderColor;
+		QColor fillColor;
 		bool isSelected = option.state.testFlag(QStyle::State_Active) && option.state.testFlag(QStyle::State_Enabled)
 				&& option.state.testFlag(QStyle::State_Selected);
 		bool isHovered = option.state.testFlag(QStyle::State_MouseOver);
 
-		if(isSelected) {
+		if(isSelected)
 			fillColor = DARK_SELECTED;
-			borderColor = DARK_SELECTED;
-		} else if(isHovered) {
+		else if(isHovered)
 			fillColor = DARK_HOVER;
-			borderColor = DARK_HOVER;
-		} else if(index.row() % 2 == 1) {
+		else if(index.row() % 2 == 1)
 			fillColor = DARK_BG_ALT;
-			borderColor = DARK_BG_ALT;
-		} else {
+		else
 			fillColor = DARK_BG;
-			borderColor = DARK_BG;
-		}
 
-		painter->setPen(QPen(borderColor));
-		painter->setBrush(QBrush(fillColor));
-		itemRect.adjust(1, 0, -2, -1);
-		painter->drawRect(itemRect);
+		itemRect.adjust(2, 2, -2, -2);
+		painter->fillRect(itemRect, fillColor);
 
 		QRect checkBoxRect = pItem->checkBoxRect(itemRect);
 		if(pTreeWidget->checkable())
@@ -190,6 +183,35 @@ void lmcUserTreeWidgetDelegate::paint(QPainter* painter, const QStyleOptionViewI
 textRect.width());
 				painter->drawText(textRect, textFlags, text);
 			}
+		}
+
+		// Draw unread badge
+		int unreadCount = pItem->data(0, UnreadRole).toInt();
+		if(unreadCount > 0) {
+			QString badgeText = unreadCount > 99 ? "99+" : QString::number(unreadCount);
+			QFont badgeFont = painter->font();
+			badgeFont.setPixelSize(10);
+			badgeFont.setBold(true);
+			painter->setFont(badgeFont);
+
+			static const QColor BADGE_BG = QColor("#ed4245");
+			static const QColor BADGE_TEXT = QColor("#ffffff");
+
+			QFontMetrics fm(badgeFont);
+			int badgeW = fm.horizontalAdvance(badgeText) + 10;
+			int badgeH = 16;
+			int badgeX = itemRect.right() - badgeW - 4;
+			int badgeY = itemRect.top() + (itemRect.height() - badgeH) / 2;
+
+			QRect badgeRect(badgeX, badgeY, badgeW, badgeH);
+			painter->setPen(Qt::NoPen);
+			painter->setBrush(BADGE_BG);
+			painter->drawRoundedRect(badgeRect, 8, 8);
+
+			painter->setPen(BADGE_TEXT);
+			painter->drawText(badgeRect, Qt::AlignCenter, badgeText);
+
+			painter->setFont(painter->font()); // restore font
 		}
 	}
 
