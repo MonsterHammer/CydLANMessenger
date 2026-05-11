@@ -26,12 +26,16 @@
 #include <QAction>
 #include <QScrollBar>
 #include <QTextBlock>
+#include <QPainter>
+#include <QAbstractTextDocumentLayout>
 #include <QRegularExpression>
 #include "messagelog.h"
 
 const QString acceptOp("accept");
 const QString declineOp("decline");
 const QString cancelOp("cancel");
+
+const int lmcMessageLog::BubbleColorProperty = QTextFormat::UserProperty + 1;
 
 lmcMessageLog::lmcMessageLog(QWidget *parent) : QMessageBrowser (parent) {
 // TODO
@@ -62,21 +66,17 @@ lmcMessageLog::lmcMessageLog(QWidget *parent) : QMessageBrowser (parent) {
 	document()->setDefaultStyleSheet(
 	    "a { color: #00aff4; text-decoration: none; }"
 	    "a:hover { text-decoration: underline; }"
-	    ".msg { padding: 1px 16px; }"
-	    ".msg:hover { background-color: #32353b; }"
-	    ".msg.incoming { text-align: left; }"
-	    ".msg.outgoing { text-align: right; }"
-	    ".bubble { display: inline-block; max-width: 70%; text-align: left; padding: 7px 12px; word-wrap: break-word; border-radius: 2px; }"
-	    ".bubble.incoming { background-color: #40444b; color: #dcddde; }"
-	    ".bubble.outgoing { background-color: #5865f2; color: #ffffff; }"
-	    ".bubble .username { color: #ffffff; font-weight: 600; font-size: 9pt; display: block; margin-bottom: 2px; }"
-	    ".bubble .message { color: inherit; font-size: 10pt; word-wrap: break-word; }"
-	    ".bubble .timestamp { color: rgba(255,255,255,0.5); font-size: 7pt; display: block; text-align: right; margin-top: 3px; }"
+	    ".msg.incoming { color: #dcddde; }"
+	    ".msg.outgoing { color: #000000; }"
 	    ".msg.status .status-text { color: #8e9297; font-size: 9pt; text-align: center; }"
 	    ".msg.broadcast .broadcast-label { color: #faa61a; }"
+	    ".message { font-size: 10pt; word-wrap: break-word; }"
+	    ".timestamp { font-size: 7pt; text-align: right; margin-top: 2px; }"
+	    ".msg.incoming .timestamp { color: rgba(255,255,255,0.4); }"
+	    ".msg.outgoing .timestamp { color: rgba(0,0,0,0.45); }"
 	    ".msg .links { margin-top: 6px; }"
 	    ".msg .links a { color: #00aff4; text-decoration: none; margin-right: 12px; font-weight: 600; }"
-	    ".msg.Nth { padding-top: 1px; }"
+	    ".msg.Nth { margin-top: -8px; }"
 	);
 }
 
@@ -125,6 +125,8 @@ void lmcMessageLog::appendMessageLog(MessageType type, QString* lpszUserId, QStr
 	bool addToLog = true;
 
     removeMessageLog(MT_ChatState);
+
+	currentBubbleColor = QColor();
 
 	switch(type) {
 	case MT_Message:
@@ -402,6 +404,82 @@ void lmcMessageLog::resizeEvent(QResizeEvent *event)
     }
 }
 
+void lmcMessageLog::paintEvent(QPaintEvent *event)
+{
+	QPainter painter(viewport());
+	painter.setRenderHint(QPainter::Antialiasing);
+	painter.setPen(Qt::NoPen);
+
+	QAbstractTextDocumentLayout *layout = document()->documentLayout();
+	int yOffset = verticalScrollBar()->value();
+
+	QList<QTextFrame*> frames = document()->rootFrame()->childFrames();
+
+	for(int i = 0; i < frames.size(); i++) {
+		QTextFrame *frame = frames.at(i);
+		QTextBlock firstBlock = frame->firstCursorPosition().block();
+		QColor bubbleColor = firstBlock.blockFormat().property(BubbleColorProperty).value<QColor>();
+		if(!bubbleColor.isValid())
+			continue;
+
+		QRectF frameRect = layout->frameBoundingRect(frame);
+		qreal y = frameRect.top() - yOffset;
+
+		if(y > height())
+			break;
+		if(y + frameRect.height() < 0)
+			continue;
+
+		bool isOutgoing = (bubbleColor == QColor("#f0c644"));
+
+		// Find the actual content cell bounds from rendered block positions
+		// (blockBoundingRect in a cell spans the full cell width, giving exact cell edges)
+		QTextBlock startBlock = frame->firstCursorPosition().block();
+		QTextBlock endBlock = frame->lastCursorPosition().block();
+		qreal cl = 1e9, cr = -1e9, ct = 1e9, cb = -1e9;
+		bool found = false;
+		QTextBlock blk = startBlock;
+		while(blk.isValid()) {
+			QRectF br = layout->blockBoundingRect(blk);
+			if(br.width() > 1.0 && br.height() > 1.0) {
+				if(br.left() < cl) cl = br.left();
+				if(br.right() > cr) cr = br.right();
+				if(br.top() < ct) ct = br.top();
+				if(br.bottom() > cb) cb = br.bottom();
+				found = true;
+			}
+			if(blk == endBlock)
+				break;
+			blk = blk.next();
+		}
+
+		if(found) {
+			// cl/cr give the full content cell edges from QTextBrowser layout.
+			// Cap width at 500px and anchor to correct side.
+			qreal cellLeft = cl;
+			qreal cellWidth = cr - cl;
+			if(cellWidth > 500) {
+				cellWidth = 500;
+				if(isOutgoing)
+					cellLeft = cr - 500;
+			}
+
+			QRectF r(cellLeft, ct, cellWidth, cb - ct);
+			r.moveTop(r.top() - yOffset);
+			r.adjust(-2, -2, 2, 2);
+			qreal rightLimit = viewport()->width() - 5;
+			if(r.right() > rightLimit)
+				r.setRight(rightLimit);
+			painter.setBrush(bubbleColor);
+			painter.drawRoundedRect(r, 2.0, 2.0);
+		}
+	}
+
+	painter.end();
+
+	QMessageBrowser::paintEvent(event);
+}
+
 void lmcMessageLog::onAnchorClicked(const QUrl &url)
 {
     QString linkPath = url.toString();
@@ -531,12 +609,28 @@ void lmcMessageLog::insertMessageLog(QTextCursor cursor, QString &html, MessageT
 {
     QTextFrameFormat frameFormat;
     frameFormat.setMargin(0);
-    frameFormat.setTopMargin(-12);
-    frameFormat.setPadding(0);
+    frameFormat.setTopMargin(0);
+    frameFormat.setPadding(2);
     frameFormat.setBorder(0);
     QTextFrame *frame = cursor.insertFrame(frameFormat);
     frame->frameFormat().setMargin(0);
     frame->firstCursorPosition().insertHtml(html);
+
+    if(currentBubbleColor.isValid()) {
+        QTextCursor frameCursor = frame->firstCursorPosition();
+        int startPos = frameCursor.position();
+        frameCursor = frame->lastCursorPosition();
+        int endPos = frameCursor.position();
+
+        QTextBlock block = document()->findBlock(startPos);
+        while(block.isValid() && block.position() <= endPos) {
+            QTextCursor blockCursor(block);
+            QTextBlockFormat fmt = blockCursor.blockFormat();
+            fmt.setProperty(BubbleColorProperty, QVariant(currentBubbleColor));
+            blockCursor.setBlockFormat(fmt);
+            block = block.next();
+        }
+    }
 
     QTextBlock block = frame->firstCursorPosition().block();
 
@@ -570,6 +664,8 @@ bool lmcMessageLog::isSameBlock(QTextCursor &cursor, MessageType type, QString &
 void lmcMessageLog::appendBroadcast(QString* lpszUserId, QString* lpszUserName, QString* lpszMessage, QDateTime* pTime) {
 	Q_UNUSED(lpszUserId);
 
+	currentBubbleColor = QColor();
+
 	decodeMessage(lpszMessage);
 
 	QString html = themeData.pubMsg;
@@ -587,6 +683,8 @@ void lmcMessageLog::appendMessage(QString* lpszUserId, QString* lpszUserName, QS
 								  QFont* pFont, QColor* pColor) {
 	QString html = QString();
 	bool localUser = (lpszUserId->compare(localId) == 0);
+
+	currentBubbleColor = localUser ? QColor("#f0c644") : QColor("#40444b");
 
 	decodeMessage(lpszMessage);
 
@@ -623,6 +721,8 @@ void lmcMessageLog::appendPublicMessage(QString* lpszUserId, QString* lpszUserNa
                                         QDateTime *pTime, QFont *pFont, QColor *pColor, MessageType messageType) {
 	QString html = QString();
 	bool localUser = (lpszUserId->compare(localId) == 0);
+
+	currentBubbleColor = localUser ? QColor("#f0c644") : QColor("#40444b");
 
 	decodeMessage(lpszMessage);
 

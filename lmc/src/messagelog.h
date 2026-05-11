@@ -82,6 +82,7 @@ signals:
 protected:
     virtual void changeEvent(QEvent* event) override;
     virtual void resizeEvent(QResizeEvent *event) override;
+    virtual void paintEvent(QPaintEvent *event) override;
 
     void scrollToEnd(QTextCursor &cursor);
 
@@ -129,6 +130,9 @@ private:
 	bool linkHovered;
 	bool outStyle;
 	bool autoScroll;
+
+	static const int BubbleColorProperty;
+	QColor currentBubbleColor;
 };
 
 #endif // MESSAGELOG_H
