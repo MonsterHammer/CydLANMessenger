@@ -78,6 +78,7 @@
 #define IDR_BISCOM_APP      ":/assets/logo/app"
 #define IDR_NAV_MINIMIZE    ":/assets/nav/minimize"
 #define IDR_NAV_MAXIMIZE    ":/assets/nav/maximize"
+#define IDR_NAV_RESTORE     ":/assets/nav/restore"
 #define IDR_NAV_CLOSE       ":/assets/nav/close"
 
 #define IDR_LICENSETEXT		":/text/license"

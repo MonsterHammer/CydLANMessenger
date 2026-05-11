@@ -44,11 +44,12 @@ lmcMainWindow::lmcMainWindow(QWidget *parent, Qt::WindowFlags flags) : QWidget(p
 
 	// Set app icon on title bar (BISCOM logo)
 	ui.lblAppIcon->setPixmap(QPixmap(IDR_BISCOM_APP).scaled(20, 20, Qt::KeepAspectRatio, Qt::SmoothTransformation));
+	ui.lblAppIcon->setCursor(Qt::PointingHandCursor);
 	ui.lblTitle->setText(QStringLiteral("BISCOM Lan Messenger"));
 
 	// Set nav button icons from Assets
 	ui.btnTitleMinimize->setIcon(QIcon(QPixmap(IDR_NAV_MINIMIZE)));
-	ui.btnTitleMaximize->setIcon(QIcon(QPixmap(IDR_NAV_MAXIMIZE)));
+	ui.btnTitleMaximize->setIcon(QIcon(QPixmap(IDR_NAV_RESTORE)));
 	ui.btnTitleClose->setIcon(QIcon(QPixmap(IDR_NAV_CLOSE)));
 
 	connect(ui.tvUserList, SIGNAL(itemActivated(QTreeWidgetItem*, int)), 
@@ -65,6 +66,11 @@ lmcMainWindow::lmcMainWindow(QWidget *parent, Qt::WindowFlags flags) : QWidget(p
 	connect(ui.btnTitleMinimize, SIGNAL(clicked()), this, SLOT(titleBarMinimize_clicked()));
 	connect(ui.btnTitleMaximize, SIGNAL(clicked()), this, SLOT(titleBarMaximize_clicked()));
 	connect(ui.btnTitleClose, SIGNAL(clicked()), this, SLOT(titleBarClose_clicked()));
+
+	// Center status icon and avatar vertically in the header
+	ui.horizontalLayout_2->setAlignment(ui.statusLayout, Qt::AlignVCenter);
+	ui.horizontalLayout_2->setAlignment(ui.infoLayout, Qt::AlignVCenter);
+	ui.horizontalLayout_2->setAlignment(ui.btnAvatar, Qt::AlignVCenter);
 
     ui.txtNote->installEventFilter(this);
     ui.tvUserList->installEventFilter(this);
@@ -105,7 +111,6 @@ void lmcMainWindow::init(User* pLocalUser, QList<Group>* pGroupList, bool connec
     ui.tvUserList->header()->setSectionsMovable(false);
 	ui.tvUserList->header()->setStretchLastSection(false);
     ui.tvUserList->header()->setSectionResizeMode(0, QHeaderView::Stretch);
-	btnStatus->setIconSize(QSize(20, 20));
 	int index = Helper::statusIndexFromCode(pLocalUser->status);
 	//	if status is not recognized, default to available
 	index = qMax(index, 0);
@@ -763,7 +768,7 @@ void lmcMainWindow::txtNote_lostFocus(void) {
 }
 
 void lmcMainWindow::createMainMenu(void) {
-	pMainMenu = new QMenuBar(this);
+	pMainMenu = new QMenu(this);
 	pFileMenu = pMainMenu->addMenu("&Messenger");
 	chatRoomAction = pFileMenu->addAction("&New Chat Room", QKeySequence::New, this,
 		SLOT(chatRoomAction_triggered()));
@@ -793,9 +798,7 @@ void lmcMainWindow::createMainMenu(void) {
 	updateAction = pHelpMenu->addAction("Check for &Updates", this, SLOT(updateAction_triggered()));
 	aboutAction = pHelpMenu->addAction(QIcon(QPixmap(IDR_INFO, "PNG")), "&About", this, SLOT(trayAboutAction_triggered()));
 
-	// Hide the placeholder and insert menu bar into title bar
 	ui.wgtMenuBar->hide();
-	ui.titleBarLayout->insertWidget(2, pMainMenu);
 }
 
 void lmcMainWindow::createTrayMenu(void) {
@@ -835,6 +838,7 @@ void lmcMainWindow::createTrayIcon(void) {
 
 void lmcMainWindow::createStatusMenu(void) {
 	pStatusMenu = new QMenu(this);
+	pStatusMenu->setObjectName("statusMenu");
 	statusGroup = new QActionGroup(this);
 	connect(statusGroup, SIGNAL(triggered(QAction*)), this, SLOT(statusAction_triggered(QAction*)));
 
@@ -888,7 +892,10 @@ void lmcMainWindow::createToolBar(void) {
 	ui.statusLayout->insertWidget(0, pStatusBar);
 	QAction* pStatusAction = pStatusBar->addAction("");
 	btnStatus = (QToolButton*)pStatusBar->widgetForAction(pStatusAction);
-	btnStatus->setPopupMode(QToolButton::MenuButtonPopup);
+	btnStatus->setObjectName("btnStatus");
+	btnStatus->setFixedSize(32, 32);
+	btnStatus->setIconSize(QSize(20, 20));
+	btnStatus->setPopupMode(QToolButton::InstantPopup);
 
 	QToolBar* pToolBar = new QToolBar(ui.wgtToolBar);
 	pToolBar->setIconSize(QSize(40, 20));
@@ -1052,7 +1059,17 @@ void lmcMainWindow::setAvatar(QString fileName) {
         avatar.save(filePath);
     }
 
-	ui.btnAvatar->setIcon(QIcon(QPixmap(filePath, "PNG")));
+	//	Apply 2px rounded corners to the avatar for btnAvatar
+	QPixmap roundedAvatar(32, 32);
+	roundedAvatar.fill(Qt::transparent);
+	QPainter painter(&roundedAvatar);
+	painter.setRenderHint(QPainter::Antialiasing);
+	QPainterPath path;
+	path.addRoundedRect(0, 0, 32, 32, 2, 2);
+	painter.setClipPath(path);
+	painter.drawPixmap(0, 0, 32, 32, QPixmap(filePath, "PNG"));
+	painter.end();
+	ui.btnAvatar->setIcon(QIcon(roundedAvatar));
 	pLocalUser->avatar = nAvatar;
 	sendAvatar(NULL);
 }
@@ -1485,10 +1502,13 @@ void lmcMainWindow::titleBarMinimize_clicked(void) {
 }
 
 void lmcMainWindow::titleBarMaximize_clicked(void) {
-	if(isMaximized())
+	if(isMaximized()) {
 		setWindowState(windowState() & ~Qt::WindowMaximized);
-	else
+		ui.btnTitleMaximize->setIcon(QIcon(QPixmap(IDR_NAV_RESTORE)));
+	} else {
 		setWindowState(windowState() | Qt::WindowMaximized);
+		ui.btnTitleMaximize->setIcon(QIcon(QPixmap(IDR_NAV_MAXIMIZE)));
+	}
 }
 
 void lmcMainWindow::titleBarClose_clicked(void) {
@@ -1497,8 +1517,10 @@ void lmcMainWindow::titleBarClose_clicked(void) {
 
 void lmcMainWindow::mousePressEvent(QMouseEvent* pEvent) {
 	if(pEvent->button() == Qt::LeftButton) {
+		titleBarPressPos = pEvent->pos();
 		QWidget* child = childAt(pEvent->pos());
-		if(child && (child == ui.titleBar || child == ui.lblAppIcon || child == ui.lblTitle)) {
+		bool isNavButton = (child == ui.btnTitleMinimize || child == ui.btnTitleMaximize || child == ui.btnTitleClose);
+		if(child && ui.titleBar->isAncestorOf(child) && !isNavButton) {
 			titleBarDragPos = pEvent->globalPosition().toPoint();
 			titleBarDrag = true;
 			pEvent->accept();
@@ -1521,6 +1543,14 @@ void lmcMainWindow::mouseMoveEvent(QMouseEvent* pEvent) {
 
 void lmcMainWindow::mouseReleaseEvent(QMouseEvent* pEvent) {
 	if(pEvent->button() == Qt::LeftButton && titleBarDrag) {
+		QPoint releasePos = pEvent->pos();
+		if((releasePos - titleBarPressPos).manhattanLength() < 5) {
+			QWidget* child = childAt(pEvent->pos());
+			if(child == ui.lblAppIcon) {
+				QPoint iconBottomLeft = ui.lblAppIcon->mapToGlobal(QPoint(0, ui.lblAppIcon->height()));
+				pMainMenu->exec(iconBottomLeft);
+			}
+		}
 		titleBarDrag = false;
 		pEvent->accept();
 		return;

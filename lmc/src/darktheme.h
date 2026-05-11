@@ -270,10 +270,59 @@ static const QString DARK_THEME_QSS = QStringLiteral(R"(
     }
     QToolButton#btnAvatar {
         border: 2px solid transparent;
-        border-radius: 50%;
+        border-radius: 2px;
+        padding: 0px;
+        margin: 0px;
     }
     QToolButton#btnAvatar:hover {
+        background-color: #393c43;
         border-color: #5865f2;
+    }
+    QToolButton#btnAvatar:pressed {
+        background-color: #2f3136;
+    }
+
+    /* --- Status Button (1:1 square, whole-box hover, no arrow) --- */
+    QToolButton#btnStatus {
+        background-color: transparent;
+        color: #dcddde;
+        border: none;
+        border-radius: 4px;
+        padding: 2px;
+        margin: 0px;
+    }
+    QToolButton#btnStatus:hover {
+        background-color: #393c43;
+        color: #ffffff;
+    }
+    QToolButton#btnStatus:pressed {
+        background-color: #2f3136;
+    }
+    QToolButton#btnStatus::menu-indicator {
+        image: none;
+        width: 0px;
+    }
+
+    /* --- Status Popup Menu --- */
+    QMenu#statusMenu {
+        background-color: #2f3136;
+        color: #dcddde;
+        border: 1px solid #202225;
+        border-radius: 4px;
+        padding: 4px;
+    }
+    QMenu#statusMenu::item {
+        padding: 6px 12px 6px 28px;
+        border-radius: 4px;
+    }
+    QMenu#statusMenu::item:selected {
+        background-color: #393c43;
+        color: #ffffff;
+    }
+    QMenu#statusMenu::indicator {
+        width: 16px;
+        height: 16px;
+        margin-left: 4px;
     }
 
     /* --- Push Buttons --- */

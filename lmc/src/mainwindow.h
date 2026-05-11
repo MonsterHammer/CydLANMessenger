@@ -180,7 +180,7 @@ private:
 
 	Ui::MainWindow ui;
 	lmcSettings* pSettings;
-	QMenuBar* pMainMenu;
+	QMenu* pMainMenu;
 	QSystemTrayIcon* pTrayIcon;
 	QMenu* pFileMenu;
 	QMenu* pToolsMenu;
@@ -259,6 +259,7 @@ private:
 
 	// Title bar drag
 	QPoint titleBarDragPos;
+	QPoint titleBarPressPos;
 	bool titleBarDrag;
 };
 

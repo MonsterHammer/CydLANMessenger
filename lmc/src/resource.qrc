@@ -179,6 +179,7 @@
     <qresource prefix="/assets/nav">
         <file alias="minimize">../../Assets/NavIcons/Subtract.png</file>
         <file alias="maximize">../../Assets/NavIcons/Stop Squared.png</file>
+        <file alias="restore">../../Assets/NavIcons/Stop.png</file>
         <file alias="close">../../Assets/NavIcons/Close.png</file>
     </qresource>
 </RCC>
