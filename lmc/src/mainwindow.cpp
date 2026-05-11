@@ -111,6 +111,11 @@ lmcMainWindow::lmcMainWindow(QWidget *parent, Qt::WindowFlags flags) : QWidget(p
 	connect(ui.btnTitleMaximize, SIGNAL(clicked()), this, SLOT(titleBarMaximize_clicked()));
 	connect(ui.btnTitleClose, SIGNAL(clicked()), this, SLOT(titleBarClose_clicked()));
 
+	pMinimizeAnimation = new QPropertyAnimation(this, "windowOpacity", this);
+	pMinimizeAnimation->setDuration(250);
+	pMinimizeAnimation->setEasingCurve(QEasingCurve::InCubic);
+	connect(pMinimizeAnimation, SIGNAL(finished()), this, SLOT(minimizeAnimationFinished()));
+
 	// Center status icon and avatar vertically in the header
 	ui.horizontalLayout_2->setAlignment(ui.statusLayout, Qt::AlignVCenter);
 	ui.horizontalLayout_2->setAlignment(ui.infoLayout, Qt::AlignVCenter);
@@ -239,10 +244,17 @@ void lmcMainWindow::show(void) {
 }
 
 void lmcMainWindow::restore(void) {
-	//	if window is minimized, restore it to previous state
-	if(windowState().testFlag(Qt::WindowMinimized))
+	bool wasMinimized = windowState().testFlag(Qt::WindowMinimized);
+	if(wasMinimized)
 		setWindowState(windowState() & ~Qt::WindowMinimized);
 	setWindowState(windowState() | Qt::WindowActive);
+	if(wasMinimized && pMinimizeAnimation->state() != QAbstractAnimation::Running) {
+		setWindowOpacity(0.3);
+		pMinimizeAnimation->setStartValue(0.3);
+		pMinimizeAnimation->setEndValue(1.0);
+		pMinimizeAnimation->setEasingCurve(QEasingCurve::OutCubic);
+		pMinimizeAnimation->start();
+	}
 	raise();	// make main window the top most window of the application
 	show();
 	activateWindow();	// bring window to foreground
@@ -1691,7 +1703,35 @@ void lmcMainWindow::updateMsgCount(void) {
 // ===================== Custom Title Bar =====================
 
 void lmcMainWindow::titleBarMinimize_clicked(void) {
-	setWindowState(windowState() | Qt::WindowMinimized);
+	if(pMinimizeAnimation->state() == QAbstractAnimation::Running)
+		return;
+
+	if(windowState().testFlag(Qt::WindowMinimized)) {
+		// Restore with fade-in
+		setWindowOpacity(0.3);
+		setWindowState(windowState() & ~Qt::WindowMinimized);
+		setWindowState(windowState() | Qt::WindowActive);
+		raise();
+		show();
+		activateWindow();
+		pMinimizeAnimation->setStartValue(0.3);
+		pMinimizeAnimation->setEndValue(1.0);
+		pMinimizeAnimation->setEasingCurve(QEasingCurve::OutCubic);
+		pMinimizeAnimation->start();
+	} else {
+		// Minimize with fade-out
+		pMinimizeAnimation->setStartValue(1.0);
+		pMinimizeAnimation->setEndValue(0.0);
+		pMinimizeAnimation->setEasingCurve(QEasingCurve::InCubic);
+		pMinimizeAnimation->start();
+	}
+}
+
+void lmcMainWindow::minimizeAnimationFinished(void) {
+	if(windowOpacity() < 0.5) {
+		setWindowOpacity(1.0);
+		setWindowState(windowState() | Qt::WindowMinimized);
+	}
 }
 
 void lmcMainWindow::titleBarMaximize_clicked(void) {

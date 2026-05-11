@@ -47,6 +47,7 @@
 #include <QStackedWidget>
 #include <QTextEdit>
 #include <QLabel>
+#include <QPropertyAnimation>
 #include "ui_mainwindow.h"
 #include "shared.h"
 #include "settings.h"
@@ -151,6 +152,7 @@ private slots:
 	void titleBarMinimize_clicked(void);
 	void titleBarMaximize_clicked(void);
 	void titleBarClose_clicked(void);
+	void minimizeAnimationFinished(void);
 
 private:
 	void createMainMenu(void);
@@ -268,6 +270,9 @@ private:
 	QPoint titleBarDragPos;
 	QPoint titleBarPressPos;
 	bool titleBarDrag;
+
+	// Minimize animation
+	QPropertyAnimation* pMinimizeAnimation;
 };
 
 #endif // MAINWINDOW_H

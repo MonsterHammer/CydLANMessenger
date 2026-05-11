@@ -30,11 +30,18 @@
 #include "chathelper.h"
 #include "xmlmessage.h"
 #include "theme.h"
-#include "qmessagebrowser.h"
+#include <QScrollArea>
+#include <QVBoxLayout>
+#include <QLabel>
+#include <QFrame>
+#include <QHash>
+#include <QList>
+#include <QMenu>
+#include <QAction>
 
 enum OutputFormat{ HtmlFormat, TextFormat };
 
-class lmcMessageLog : public QMessageBrowser
+class lmcMessageLog : public QScrollArea
 {
     Q_OBJECT
 
@@ -57,8 +64,9 @@ public:
     void abortPendingFileOperations(void);
     void saveMessageLog(QString filePath);
     void restoreMessageLog(QString filePath, bool reload = true);
-    void appendMessageLog(QString* lpszHtml, MessageType type, QTextBlockData *data = nullptr);
+    void appendMessageLog(QString* lpszHtml, MessageType type, const QString &id = QString());
 	void appendBroadcast(QString* lpszUserId, QString* lpszUserName, QString* lpszMessage, QDateTime* pTime);
+    void setHtml(const QString &html);
 
 	QString localId;
 	QString peerId;
@@ -80,28 +88,30 @@ signals:
 	void messageSent(MessageType type, QString* lpszUserId, XmlMessage* pMessage);
 
 protected:
-    virtual void changeEvent(QEvent* event) override;
     virtual void resizeEvent(QResizeEvent *event) override;
-    virtual void paintEvent(QPaintEvent *event) override;
-
-    void scrollToEnd(QTextCursor &cursor);
 
 private slots:
-    // TODO
-    //void log_linkClicked(QUrl url);
-	void log_linkHovered(const QString& link, const QString& title, const QString& textContent);
 	void showContextMenu(const QPoint& pos);
 	void copyAction_triggered(void);
 	void copyLinkAction_triggered(void);
 	void selectAllAction_triggered(void);
-    void onAnchorClicked(const QUrl &arg1);
+    void onLinkClicked(const QString &link);
 
 private:
 	void createContextMenu(void);
+    void addMsg(QWidget *w, bool sameSource = false);
+    QWidget* createBubble(bool isOutgoing, const QString &messageHtml,
+                          const QString &timestamp, MessageType type, const QString &id);
+    QWidget* createSystemMessage(const QString &html, MessageType type);
+    QWidget* createFileMessage(const QString &fileId, FileMode mode, FileOp op,
+                               const QString &fileName, qint64 fileSize,
+                               const QString &senderName, const QString &linksHtml);
+    void scrollToEnd(void);
     void removeMessageLog(MessageType type);
-    void replaceMessageLog(MessageType type, QString id, QString html);
-    void insertMessageLog(QTextCursor cursor, QString& html, MessageType type, QTextBlockData *data);
-    bool isSameBlock(QTextCursor& cursor, MessageType type, QString& id) const;
+    void replaceFileMessage(const QString &id, const QString &fileId, FileMode mode, FileOp op,
+                            const QString &fileName, qint64 fileSize,
+                            const QString &senderName, const QString &linksHtml);
+    int indexOfMessageNode(const QString &id) const;
 	void appendMessage(QString* lpszUserId, QString* lpszUserName, QString* lpszMessage, QDateTime* pTime,
 		QFont* pFont, QColor* pColor);
 	void appendPublicMessage(QString* lpszUserId, QString* lpszUserName, QString* lpszMessage, QDateTime* pTime,
@@ -119,9 +129,16 @@ private:
     QString getFileTempId(FileMode mode, QString fileId) const;
     QString getFileTempId(XmlMessage* pMessage) const;
 
+    struct MessageNode {
+        QWidget *widget;
+        MessageType type;
+        QString id;
+    };
+
 	QMap<QString, XmlMessage> sendFileMap;
 	QMap<QString, XmlMessage> receiveFileMap;
 	QList<SingleMessage> messageLog;
+    QList<MessageNode> messageNodes;
 	ThemeData themeData;
 	QMenu* contextMenu;
 	QAction* copyAction;
@@ -131,8 +148,8 @@ private:
 	bool outStyle;
 	bool autoScroll;
 
-	static const int BubbleColorProperty;
-	QColor currentBubbleColor;
+    QWidget *contentWidget;
+    QVBoxLayout *mainLayout;
 };
 
 #endif // MESSAGELOG_H

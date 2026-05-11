@@ -1,0 +1,67 @@
+[gd_scene load_steps=2 format=3 uid="uid://b4hqkcpcoa542"]
+
+[ext_resource type="Script" path="res://scripts/ui/main_ui.gd" id="1_f7eco"]
+
+[node name="Main" type="Control"]
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+script = ExtResource("1_f7eco")
+
+[node name="UserList" type="Panel" parent="."]
+offset_left = 4.0
+offset_top = 4.0
+offset_right = 260.0
+offset_bottom = 600.0
+theme_override_consts = {border_width_left=0, border_width_top=0, border_width_right=0, border_width_bottom=0}
+
+[node name="UserLabel" type="Label" parent="UserList"]
+offset_left = 8.0
+offset_top = 8.0
+offset_right = 248.0
+offset_bottom = 32.0
+text = "Online Users"
+theme_override_font_sizes = {font_size=14}
+
+[node name="UserItemList" type="ItemList" parent="UserList"]
+offset_left = 8.0
+offset_top = 36.0
+offset_right = 248.0
+offset_bottom = 592.0
+unique_name_in_owner = true
+
+[node name="ChatPanel" type="Panel" parent="."]
+offset_left = 268.0
+offset_top = 4.0
+offset_right = 1020.0
+offset_bottom = 540.0
+
+[node name="ChatLog" type="RichTextLabel" parent="ChatPanel"]
+offset_left = 8.0
+offset_top = 8.0
+offset_right = 744.0
+offset_bottom = 480.0
+scroll_active = true
+unique_name_in_owner = true
+
+[node name="InputPanel" type="Panel" parent="."]
+offset_left = 268.0
+offset_top = 544.0
+offset_right = 1020.0
+offset_bottom = 600.0
+
+[node name="MessageInput" type="TextEdit" parent="InputPanel"]
+offset_left = 8.0
+offset_top = 8.0
+offset_right = 668.0
+offset_bottom = 48.0
+placeholder_text = "Type a message..."
+unique_name_in_owner = true
+
+[node name="SendButton" type="Button" parent="InputPanel"]
+offset_left = 676.0
+offset_top = 8.0
+offset_right = 744.0
+offset_bottom = 48.0
+text = "Send"
+unique_name_in_owner = true
