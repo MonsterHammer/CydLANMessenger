@@ -11,13 +11,10 @@ var _file_name: String = ""
 var _file_size: int = 0
 var _address: String = ""
 var _port: int = 0
-var _sent_bytes: int = 0
 var _socket: StreamPeerTCP = null
 var _file: FileAccess = null
-var _buffer: PackedByteArray
 var _active: bool = false
-var _milestone: int = 0
-var _mile: int = 0
+var _handshake_sent: bool = false
 var _timer: float = 0.0
 
 const BUFFER_SIZE = 65535
@@ -33,58 +30,50 @@ func _init(sz_id: String, sz_local_id: String, sz_peer_id: String, sz_file_path:
 	_address = sz_address
 	_port = n_port
 	type = n_type
-	_mile = max(1, _file_size / 36)
-	_milestone = _mile
 
 func init_send() -> void:
 	_socket = StreamPeerTCP.new()
-	if _socket.connect_to_host(_address, _port) != OK:
-		push_error("FileSender: Failed to connect")
+	_socket.connect_to_host(_address, _port)
 
 func stop() -> void:
 	_active = false
-	if _file:
-		_file.close()
+	if _file and _file.is_open(): _file.close()
 	if _socket and _socket.get_status() == StreamPeerTCP.STATUS_CONNECTED:
 		_socket.disconnect_from_host()
 
 func _process(delta):
-	if not _socket:
-		return
+	if not _socket: return
 	var status = _socket.get_status()
-	if status == StreamPeerTCP.STATUS_CONNECTED and not _active and not _file:
-		_on_connected()
-	elif status == StreamPeerTCP.STATUS_NONE or status == StreamPeerTCP.STATUS_ERROR:
+	if status == StreamPeerTCP.STATUS_CONNECTED and not _handshake_sent:
+		_handshake_sent = true
+		var data = "FILE".to_utf8_buffer() + id.to_utf8_buffer() + _local_id.to_utf8_buffer()
+		_socket.put_data(data)
+	elif status in [StreamPeerTCP.STATUS_NONE, StreamPeerTCP.STATUS_ERROR]:
 		if _active:
 			_on_disconnected()
 		return
-	if status == StreamPeerTCP.STATUS_CONNECTED and _socket.get_available_bytes() > 0 and _active:
-		_on_ready_read()
+	if status == StreamPeerTCP.STATUS_CONNECTED:
+		var avail = _socket.get_available_bytes()
+		if avail > 0 and _handshake_sent:
+			_on_ready_read()
 	if _active and _timer > 0:
 		_timer -= delta
 		if _timer <= 0:
 			_on_timer_timeout()
-
-func _on_connected() -> void:
-	var data = id.to_utf8_buffer()
-	data.append_array(_local_id.to_utf8_buffer())
-	var prefix = "FILE".to_utf8_buffer()
-	data = prefix + data
-	_socket.put_data(data)
-	_send_file()
 
 func _on_disconnected() -> void:
 	if _active:
 		progress_updated.emit(FileMode.FM_Send, FileOp.FO_Error, type, id, peer_id, "")
 
 func _on_ready_read() -> void:
-	_send_file()
+	if not _file:
+		_send_file()
+	# Else: continue was triggered by next chunk; handle in _process via bytesWritten equivalent
 
 func _on_timer_timeout() -> void:
 	if not _active: return
 	if _file:
-		var transferred = str(_file.get_position())
-		progress_updated.emit(FileMode.FM_Send, FileOp.FO_Progress, type, id, peer_id, transferred)
+		progress_updated.emit(FileMode.FM_Send, FileOp.FO_Progress, type, id, peer_id, str(_file.get_position()))
 
 func _send_file() -> void:
 	if not _file:
@@ -93,8 +82,6 @@ func _send_file() -> void:
 			_socket.disconnect_from_host()
 			progress_updated.emit(FileMode.FM_Send, FileOp.FO_Error, type, id, peer_id, "")
 			return
-		_buffer = PackedByteArray()
-		_buffer.resize(BUFFER_SIZE)
 		_active = true
 		_timer = PROGRESS_TIMEOUT / 1000.0
 	var unsent = _file_size - _file.get_position()
@@ -105,5 +92,6 @@ func _send_file() -> void:
 		progress_updated.emit(FileMode.FM_Send, FileOp.FO_Complete, type, id, peer_id, _file_path)
 		return
 	var to_send = mini(BUFFER_SIZE, unsent)
-	var bytes_read = _file.get_buffer(to_send)
-	_socket.put_data(bytes_read)
+	var chunk = _file.get_buffer(to_send)
+	if chunk.size() > 0:
+		_socket.put_data(chunk)

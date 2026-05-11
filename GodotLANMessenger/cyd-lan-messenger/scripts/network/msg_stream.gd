@@ -38,7 +38,11 @@ func send_message(data: PackedByteArray) -> void:
 	var data_len = 4 + data.size()
 	_out_data_len += data_len
 	_out_data.resize(data_len)
-	_out_data.encode_u32(0, data.size())
+	# Big-endian u32 (QDataStream default)
+	_out_data[0] = (data.size() >> 24) & 0xFF
+	_out_data[1] = (data.size() >> 16) & 0xFF
+	_out_data[2] = (data.size() >> 8) & 0xFF
+	_out_data[3] = data.size() & 0xFF
 	for i in range(data.size()):
 		_out_data[i + 4] = data[i]
 	_socket.put_data(_out_data)
@@ -77,7 +81,10 @@ func _on_ready_read() -> void:
 			_reading = true
 			var result = _socket.get_data(4)
 			if result["error"] != OK: return
-			_in_data_len = result["data"].decode_u32(0)
+			var len_data = result["data"]
+			if len_data.size() < 4: return
+			# Big-endian u32 (QDataStream default)
+			_in_data_len = (len_data[0] << 24) | (len_data[1] << 16) | (len_data[2] << 8) | len_data[3]
 			_in_data = PackedByteArray()
 			var chunk = _socket.get_data(_in_data_len)
 			if chunk["error"] != OK: return
