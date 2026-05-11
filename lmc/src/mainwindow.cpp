@@ -43,6 +43,49 @@ lmcMainWindow::lmcMainWindow(QWidget *parent, Qt::WindowFlags flags) : QWidget(p
 	setWindowFlag(Qt::FramelessWindowHint);
 	ui.setupUi(this);
 
+	setStyleSheet(
+		"QScrollBar:vertical {"
+		"  background: #2f3136;"
+		"  width: 8px;"
+		"  margin: 0px;"
+		"  border-radius: 4px;"
+		"}"
+		"QScrollBar::handle:vertical {"
+		"  background: #40444b;"
+		"  min-height: 30px;"
+		"  border-radius: 4px;"
+		"}"
+		"QScrollBar::handle:vertical:hover {"
+		"  background: #4f545c;"
+		"}"
+		"QScrollBar::add-line:vertical, QScrollBar::sub-line:vertical {"
+		"  height: 0px;"
+		"}"
+		"QScrollBar::add-page:vertical, QScrollBar::sub-page:vertical {"
+		"  background: none;"
+		"}"
+		"QScrollBar:horizontal {"
+		"  background: #2f3136;"
+		"  height: 8px;"
+		"  margin: 0px;"
+		"  border-radius: 4px;"
+		"}"
+		"QScrollBar::handle:horizontal {"
+		"  background: #40444b;"
+		"  min-width: 30px;"
+		"  border-radius: 4px;"
+		"}"
+		"QScrollBar::handle:horizontal:hover {"
+		"  background: #4f545c;"
+		"}"
+		"QScrollBar::add-line:horizontal, QScrollBar::sub-line:horizontal {"
+		"  width: 0px;"
+		"}"
+		"QScrollBar::add-page:horizontal, QScrollBar::sub-page:horizontal {"
+		"  background: none;"
+		"}"
+	);
+
 	// Set app icon on title bar (BISCOM logo)
 	ui.lblAppIcon->setPixmap(QPixmap(IDR_BISCOM_APP).scaled(20, 20, Qt::KeepAspectRatio, Qt::SmoothTransformation));
 	ui.lblAppIcon->setCursor(Qt::PointingHandCursor);
@@ -105,7 +148,7 @@ void lmcMainWindow::init(User* pLocalUser, QList<Group>* pGroupList, bool connec
 	createGroupMenu();
 	createUserMenu();
 
-	ui.leftPanelLayout->setContentsMargins(5, 5, 5, 5);
+	ui.leftPanelLayout->setContentsMargins(5, 0, 5, 5);
 	ui.tvUserList->setFocusPolicy(Qt::NoFocus);
 	ui.tvUserList->setStyleSheet(
 		"lmcUserTreeWidget { background: #2f3136; border-radius: 2px; }"
@@ -240,32 +283,35 @@ void lmcMainWindow::stop(void) {
 
 	pTrayIcon->hide();
 
-	//	delete all temp files from cache
+	//	process all temp message cache files - save to history but keep them for next session
 	QDir cacheDir(StdLocation::cacheDir());
 	if(!cacheDir.exists())
 		return;
-    QDir::Filters filters = QDir::Files | QDir::Readable;
-    QDir::SortFlags sort = QDir::Name;
-    //  save all cached conversations to history, then delete the files
-    QString filter = "msg_*.tmp";
-    lmcMessageLog* pMessageLog = new lmcMessageLog();
-    QStringList fileNames = cacheDir.entryList(QStringList() << filter, filters, sort);
-    foreach (QString fileName, fileNames) {
-        QString filePath = cacheDir.absoluteFilePath(fileName);
-        pMessageLog->restoreMessageLog(filePath, false);
-        QString szMessageLog = pMessageLog->prepareMessageLogForSave();
-        History::save(pMessageLog->peerName, QDateTime::currentDateTime(), &szMessageLog);
-        QFile::remove(filePath);
-    }
-    pMessageLog->deleteLater();
+	QDir::Filters filters = QDir::Files | QDir::Readable;
+	QDir::SortFlags sort = QDir::Name;
+	QString filter = "msg_*.tmp";
+	QStringList fileNames = cacheDir.entryList(QStringList() << filter, filters, sort);
+	bool saveHistory = pSettings->value(IDS_HISTORY, IDS_HISTORY_VAL).toBool();
+	if(saveHistory) {
+		lmcMessageLog* pMessageLog = new lmcMessageLog();
+		foreach(QString fileName, fileNames) {
+			QString filePath = cacheDir.absoluteFilePath(fileName);
+			pMessageLog->restoreMessageLog(filePath, false);
+			if(pMessageLog->hasData) {
+				QString szMessageLog = pMessageLog->prepareMessageLogForSave();
+				History::save(pMessageLog->peerName, QDateTime::currentDateTime(), &szMessageLog);
+			}
+		}
+		pMessageLog->deleteLater();
+	}
 
-    //  delete all other temp files
-    filter = "*.tmp";
-    fileNames = cacheDir.entryList(QStringList() << filter, filters, sort);
-    foreach (QString fileName, fileNames) {
-        QString filePath = cacheDir.absoluteFilePath(fileName);
-        QFile::remove(filePath);
-    }
+	//	delete all other temp files (not msg_*.tmp)
+	filter = "*.tmp";
+	fileNames = cacheDir.entryList(QStringList() << filter, filters, sort);
+	foreach(QString fileName, fileNames) {
+		if(!fileName.startsWith("msg_"))
+			QFile::remove(cacheDir.absoluteFilePath(fileName));
+	}
 }
 
 void lmcMainWindow::addUser(User* pUser) {
@@ -1327,7 +1373,13 @@ void lmcMainWindow::initInlineChat(void) {
 	ui.txtChatMessage->setStyleSheet("QTextEdit {color: #ffffff;}");
 	inlineFontSizeVal = 0;
 	currentChatPeer = QString();
-	nSmiley = 0;
+
+	lblMsgCount = new QLabel(ui.chatHeader);
+	lblMsgCount->setObjectName("lblMsgCount");
+	lblMsgCount->setStyleSheet("QLabel { color: #8e9297; font-size: 11pt; font-weight: bold; }");
+	lblMsgCount->setToolTip(tr("Total chats"));
+	lblMsgCount->setText("0");
+	ui.chatHeaderLayout->addWidget(lblMsgCount);
 }
 
 void lmcMainWindow::showInlineChat(QString* lpszUserId) {
@@ -1393,6 +1445,8 @@ void lmcMainWindow::showInlineChat(QString* lpszUserId) {
 	// Try to restore any saved message log
 	QString cacheFile = QDir(StdLocation::cacheDir()).absoluteFilePath("msg_" + inlinePeerId + ".tmp");
 	pInlineMessageLog->restoreMessageLog(cacheFile);
+
+	updateMsgCount();
 
 	// Show the chat page
 	ui.rightPanel->setCurrentIndex(1);
@@ -1469,6 +1523,8 @@ void lmcMainWindow::inlineReceiveMessage(QString* lpszUserId, QString* lpszUserN
 	default:
 		break;
 	}
+
+	updateMsgCount();
 }
 
 void lmcMainWindow::inlineSendMessage(void) {
@@ -1493,6 +1549,8 @@ void lmcMainWindow::inlineSendMessage(void) {
 
 	// Send through the network
 	sendMessage(MT_Message, &inlinePeerId, &xmlMessage);
+
+	updateMsgCount();
 
 	ui.txtChatMessage->clear();
 	ui.txtChatMessage->setFocus();
@@ -1614,6 +1672,20 @@ void lmcMainWindow::appendInlineMessageLog(MessageType type, QString* lpszUserId
 		html.replace("%message%", message);
 		pInlineMessageLog->appendMessageLog(&html, type);
 	}
+}
+
+void lmcMainWindow::updateMsgCount(void) {
+	if(!pInlineMessageLog || !lblMsgCount)
+		return;
+	int count = 0;
+	int total = pInlineMessageLog->messageCount();
+	for(int i = 0; i < total; i++) {
+		MessageType type = pInlineMessageLog->messageTypeAt(i);
+		if(type == MT_Message || type == MT_GroupMessage || type == MT_PublicMessage ||
+		   type == MT_File || type == MT_Folder || type == MT_Broadcast)
+			count++;
+	}
+	lblMsgCount->setText(QString::number(count));
 }
 
 // ===================== Custom Title Bar =====================

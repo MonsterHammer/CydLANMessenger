@@ -180,6 +180,7 @@ private:
 	void decodeInlineMessage(QString* lpszMessage);
 	void appendInlineMessageLog(MessageType type, QString* lpszUserId, QString* lpszUserName, XmlMessage* pMessage);
 	void inlineChatStateChanged(void);
+	void updateMsgCount(void);
 
 	Ui::MainWindow ui;
 	lmcSettings* pSettings;
@@ -201,6 +202,7 @@ private:
 	QToolButton* toolPublicChatButton;
 	QToolButton* toolRefreshButton;
 	QLineEdit* searchBar;
+	QLabel* lblMsgCount;
 	User* pLocalUser;
 	bool bConnected;
 	int nAvatar;

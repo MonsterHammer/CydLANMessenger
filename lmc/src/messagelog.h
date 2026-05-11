@@ -51,6 +51,8 @@ public:
 	void updateAvatar(QString* lpszUserId, QString* lpszFilePath);
 	void reloadMessageLog(void);
 	QString prepareMessageLogForSave(OutputFormat format = HtmlFormat);
+	int messageCount(void) const;
+	MessageType messageTypeAt(int index) const;
 	void setAutoScroll(bool enable);
     void abortPendingFileOperations(void);
     void saveMessageLog(QString filePath);

@@ -263,6 +263,16 @@ void lmcMessageLog::reloadMessageLog(void) {
 	}
 }
 
+int lmcMessageLog::messageCount(void) const {
+	return messageLog.count();
+}
+
+MessageType lmcMessageLog::messageTypeAt(int index) const {
+	if(index < 0 || index >= messageLog.count())
+		return MT_Blank;
+	return messageLog.at(index).type;
+}
+
 QString lmcMessageLog::prepareMessageLogForSave(OutputFormat format) {
 	QDateTime time;
 
