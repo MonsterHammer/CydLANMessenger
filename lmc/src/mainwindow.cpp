@@ -112,6 +112,33 @@ void lmcMainWindow::init(User* pLocalUser, QList<Group>* pGroupList, bool connec
 		"lmcUserTreeWidget::item:focus { outline: none; }"
 	);
 
+	ui.frame->setStyleSheet("QFrame { background: #2f3136; border-radius: 2px; }");
+	QHBoxLayout* frameLayout = qobject_cast<QHBoxLayout*>(ui.frame->layout());
+	if(frameLayout) {
+		QSpacerItem* spacer1 = frameLayout->takeAt(0)->spacerItem();
+		QLayoutItem* statusItem = frameLayout->takeAt(0);
+		QSpacerItem* spacer2 = frameLayout->takeAt(0)->spacerItem();
+		QLayoutItem* infoItem = frameLayout->takeAt(0);
+		QSpacerItem* spacer3 = frameLayout->takeAt(0)->spacerItem();
+		QLayoutItem* avatarItem = frameLayout->takeAt(0);
+
+		frameLayout->addItem(spacer1);
+		frameLayout->addItem(avatarItem);
+		frameLayout->addItem(spacer2);
+		frameLayout->addItem(infoItem);
+		frameLayout->addItem(spacer3);
+		frameLayout->addItem(statusItem);
+	}
+	ui.btnAvatar->setFixedSize(40, 40);
+	ui.btnAvatar->setIconSize(QSize(32, 32));
+	ui.btnAvatar->setStyleSheet(
+		"lmcToolButton { border-radius: 2px; }"
+		"lmcToolButton::menu-indicator { image: none; }"
+	);
+	ui.txtNote->setStyleSheet(
+		"QLineEdit { border: none; background: transparent; padding: 0px; margin: 0px; }"
+	);
+
 	ui.lblDividerTop->setBackgroundRole(QPalette::Highlight);
 	ui.lblDividerTop->setAutoFillBackground(true);
 
