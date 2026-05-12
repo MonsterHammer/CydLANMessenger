@@ -1,9 +1,10 @@
 extends Node
+const _D = preload("res://scripts/network/definitions.gd")
 signal progress_updated(mode, op, type, id, user_id, data)
 
 var id: String = ""
 var peer_id: String = ""
-var type: int = FileType.FT_Normal
+var type: int = _D.FileType.FT_Normal
 
 var _file_path: String = ""
 var _file_name: String = ""
@@ -62,7 +63,7 @@ func _process(delta):
 
 func _on_disconnected() -> void:
 	if _active:
-		progress_updated.emit(FileMode.FM_Receive, FileOp.FO_Error, type, id, peer_id, "")
+		progress_updated.emit(_D.FileMode.FM_Receive, _D.FileOp.FO_Error, type, id, peer_id, "")
 
 func _on_ready_read() -> void:
 	if not _active: return
@@ -76,7 +77,7 @@ func _on_ready_read() -> void:
 		_active = false
 		_file.close()
 		_socket.disconnect_from_host()
-		progress_updated.emit(FileMode.FM_Receive, FileOp.FO_Complete, type, id, peer_id, _file_path)
+		progress_updated.emit(_D.FileMode.FM_Receive, _D.FileOp.FO_Complete, type, id, peer_id, _file_path)
 
 func _on_timer_timeout() -> void:
 	if not _active: return
@@ -87,10 +88,10 @@ func _on_timer_timeout() -> void:
 	else:
 		_num_timeouts += 1
 		if _num_timeouts > 20:
-			progress_updated.emit(FileMode.FM_Receive, FileOp.FO_Error, type, id, peer_id, "")
+			progress_updated.emit(_D.FileMode.FM_Receive, _D.FileOp.FO_Error, type, id, peer_id, "")
 			stop()
 			return
-	progress_updated.emit(FileMode.FM_Receive, FileOp.FO_Progress, type, id, peer_id, str(pos))
+	progress_updated.emit(_D.FileMode.FM_Receive, _D.FileOp.FO_Progress, type, id, peer_id, str(pos))
 
 func _receive_file() -> void:
 	var dir = _file_path.get_base_dir()
@@ -99,7 +100,7 @@ func _receive_file() -> void:
 	_file = FileAccess.open(_file_path, FileAccess.WRITE)
 	if _file:
 		_active = true
-		_timer = PROGRESS_TIMEOUT / 1000.0
+		_timer = _D.PROGRESS_TIMEOUT / 1000.0
 	else:
 		_socket.disconnect_from_host()
-		progress_updated.emit(FileMode.FM_Receive, FileOp.FO_Error, type, id, peer_id, _file_path)
+		progress_updated.emit(_D.FileMode.FM_Receive, _D.FileOp.FO_Error, type, id, peer_id, _file_path)

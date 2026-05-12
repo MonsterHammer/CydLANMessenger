@@ -1,4 +1,5 @@
 extends Node
+const _D = preload("res://scripts/network/definitions.gd")
 
 signal user_added(user)
 signal user_removed(user_id)
@@ -40,7 +41,7 @@ func stop() -> void:
 	_started = false
 	if network: network.stop()
 
-func is_connected() -> bool:
+func network_is_connected() -> bool:
 	return network.is_connected if network else false
 
 func can_receive() -> bool:
@@ -76,60 +77,60 @@ func user_count() -> int:
 func _send_announce() -> void:
 	_msg_id += 1
 	var msg = XmlMessage.new()
-	msg.add_data(XN_NAME, local_user.get("name", ""))
-	msg.add_data(XN_VERSION, local_user.get("version", ""))
-	msg.add_data(XN_ADDRESS, local_user.get("address", ""))
-	msg.add_data(XN_STATUS, local_user.get("status", ""))
-	msg.add_data(XN_AVATAR, str(local_user.get("avatar", 0)))
-	msg.add_data(XN_NOTE, local_user.get("note", ""))
-	msg.add_data(XN_USERCAPS, str(local_user.get("caps", 0)))
-	msg.add_data(XN_GROUP, local_user.get("group", "General"))
-	_prepare_message(MessageType.MT_Announce, _msg_id, false, "", msg)
+	msg.add_data(_D.XN_NAME, local_user.get("name", ""))
+	msg.add_data(_D.XN_VERSION, local_user.get("version", ""))
+	msg.add_data(_D.XN_ADDRESS, local_user.get("address", ""))
+	msg.add_data(_D.XN_STATUS, local_user.get("status", ""))
+	msg.add_data(_D.XN_AVATAR, str(local_user.get("avatar", 0)))
+	msg.add_data(_D.XN_NOTE, local_user.get("note", ""))
+	msg.add_data(_D.XN_USERCAPS, str(local_user.get("caps", 0)))
+	msg.add_data(_D.XN_GROUP, local_user.get("group", "General"))
+	_prepare_message(_D.MessageType.MT_Announce, _msg_id, false, "", msg)
 
 func _receive_broadcast(pHeader, data: String) -> void:
 	var msg = XmlMessage.new(data)
 	if not msg.is_valid():
 		return
-	var type_str = msg.header(XN_TYPE)
-	var type_idx = Helper.index_of(MessageTypeNames, type_str)
+	var type_str = msg.header(_D.XN_TYPE)
+	var type_idx = Helper.index_of(_D.MessageTypeNames, type_str)
 	if type_idx < 0: return
 
 	match type_idx:
-		MessageType.MT_Announce:
+		_D.MessageType.MT_Announce:
 			_process_announce(msg, pHeader["address"])
-		MessageType.MT_Depart:
+		_D.MessageType.MT_Depart:
 			_process_depart(msg)
-		MessageType.MT_Broadcast:
-			_process_broadcast_msg(msg, msg.header(XN_FROM))
+		_D.MessageType.MT_Broadcast:
+			_process_broadcast_msg(msg, msg.header(_D.XN_FROM))
 
 func _process_announce(pMessage: XmlMessage, address: String) -> void:
-	var user_id = pMessage.header(XN_FROM)
+	var user_id = pMessage.header(_D.XN_FROM)
 	if user_id.is_empty(): return
 	if user_id == _local_id(): return
 
-	var user_name = pMessage.data(XN_NAME)
-	var version = pMessage.data(XN_VERSION)
-	var status = pMessage.data(XN_STATUS)
-	var avatar = pMessage.data(XN_AVATAR)
-	var note = pMessage.data(XN_NOTE)
-	var caps = pMessage.data(XN_USERCAPS)
-	var group = pMessage.data(XN_GROUP)
+	var user_name = pMessage.data(_D.XN_NAME)
+	var version = pMessage.data(_D.XN_VERSION)
+	var status = pMessage.data(_D.XN_STATUS)
+	var avatar = pMessage.data(_D.XN_AVATAR)
+	var note = pMessage.data(_D.XN_NOTE)
+	var caps = pMessage.data(_D.XN_USERCAPS)
+	var group = pMessage.data(_D.XN_GROUP)
 
 	_add_user(user_id, version, address, user_name, status, avatar, note, caps, group)
 	user_added.emit({ "id": user_id, "name": user_name, "address": address, "status": status })
 	network.add_connection(user_id, address)
 
 func _process_depart(pMessage: XmlMessage) -> void:
-	var user_id = pMessage.header(XN_FROM)
+	var user_id = pMessage.header(_D.XN_FROM)
 	if user_id.is_empty(): return
 	_remove_user(user_id)
 	user_removed.emit(user_id)
 
 func _process_broadcast_msg(pMessage: XmlMessage, user_id: String) -> void:
-	var body = pMessage.data(XN_BROADCAST) if pMessage.data_exists(XN_BROADCAST) else pMessage.data(XN_MESSAGE)
+	var body = pMessage.data(_D.XN_BROADCAST) if pMessage.data_exists(_D.XN_BROADCAST) else pMessage.data(_D.XN_MESSAGE)
 	var sender = get_user(user_id)
 	var name = sender.get("name", user_id) if not sender.is_empty() else user_id
-	message_received.emit(MessageType.MT_Broadcast, user_id, name, body)
+	message_received.emit(_D.MessageType.MT_Broadcast, user_id, name, body)
 
 # -- Internal: Direct message handling --
 
@@ -137,7 +138,7 @@ func _prepare_message(type: int, msg_id: int, retry: bool, user_id: String, pMes
 	if not pMessage:
 		pMessage = XmlMessage.new()
 	var sz = Message.add_header(type, msg_id, _local_id(), user_id, pMessage)
-	if type == MessageType.MT_Announce or type == MessageType.MT_Depart:
+	if type == _D.MessageType.MT_Announce or type == _D.MessageType.MT_Depart:
 		network.send_broadcast(sz)
 	else:
 		var user = get_user(user_id)
@@ -159,49 +160,49 @@ func _process_message(msg_type: int, pHeader) -> void:
 	var name = user.get("name", uid) if not user.is_empty() else uid
 
 	match msg_type:
-		MessageType.MT_Message:
-			var body = pMessage.data(XN_MESSAGE)
+		_D.MessageType.MT_Message:
+			var body = pMessage.data(_D.XN_MESSAGE)
 			message_received.emit(msg_type, uid, name, body)
-		MessageType.MT_GroupMessage:
-			var body = pMessage.data(XN_GROUPMESSAGE) if pMessage.data_exists(XN_GROUPMESSAGE) else pMessage.data(XN_MESSAGE)
+		_D.MessageType.MT_GroupMessage:
+			var body = pMessage.data(_D.XN_GROUPMESSAGE) if pMessage.data_exists(_D.XN_GROUPMESSAGE) else pMessage.data(_D.XN_MESSAGE)
 			message_received.emit(msg_type, uid, name, body)
-		MessageType.MT_PublicMessage:
-			var body = pMessage.data(XN_MESSAGE)
+		_D.MessageType.MT_PublicMessage:
+			var body = pMessage.data(_D.XN_MESSAGE)
 			message_received.emit(msg_type, uid, name, body)
-		MessageType.MT_Status:
-			_update_user(uid, "status", pMessage.data(XN_STATUS))
-		MessageType.MT_UserName:
-			_update_user(uid, "name", pMessage.data(XN_NAME))
-		MessageType.MT_Note:
-			_update_user(uid, "note", pMessage.data(XN_NOTE))
-		MessageType.MT_ChatState:
-			message_received.emit(msg_type, uid, name, pMessage.data(XN_CHATSTATE))
-		MessageType.MT_File, MessageType.MT_Folder:
-			var fid = pMessage.data(XN_FILEID)
-			var ftype_str = pMessage.data(XN_FILETYPE)
-			var mode_str = pMessage.data(XN_MODE)
-			var op_str = pMessage.data(XN_FILEOP)
+		_D.MessageType.MT_Status:
+			_update_user(uid, "status", pMessage.data(_D.XN_STATUS))
+		_D.MessageType.MT_UserName:
+			_update_user(uid, "name", pMessage.data(_D.XN_NAME))
+		_D.MessageType.MT_Note:
+			_update_user(uid, "note", pMessage.data(_D.XN_NOTE))
+		_D.MessageType.MT_ChatState:
+			message_received.emit(msg_type, uid, name, pMessage.data(_D.XN_CHATSTATE))
+		_D.MessageType.MT_File, _D.MessageType.MT_Folder:
+			var fid = pMessage.data(_D.XN_FILEID)
+			var ftype_str = pMessage.data(_D.XN_FILETYPE)
+			var mode_str = pMessage.data(_D.XN_MODE)
+			var op_str = pMessage.data(_D.XN_FILEOP)
 			message_received.emit(msg_type, uid, name, op_str)
-		MessageType.MT_UserData:
-			var qop = pMessage.data(XN_QUERYOP)
-			if qop == QueryOpNames[QueryOp.QO_Get]:
-				_prepare_message(MessageType.MT_UserData, _msg_id + 1, false, uid, _build_user_data_reply())
+		_D.MessageType.MT_UserData:
+			var qop = pMessage.data(_D.XN_QUERYOP)
+			if qop == _D.QueryOpNames[_D.QueryOp.QO_Get]:
+				_prepare_message(_D.MessageType.MT_UserData, _msg_id + 1, false, uid, _build_user_data_reply())
 				_msg_id += 1
-			elif qop == QueryOpNames[QueryOp.QO_Result]:
-				var av = pMessage.data(XN_AVATAR)
-				pMessage.remove_header(XN_TIME)
-				message_received.emit(msg_type, uid, name, pMessage.to_string())
+			elif qop == _D.QueryOpNames[_D.QueryOp.QO_Result]:
+				var av = pMessage.data(_D.XN_AVATAR)
+				pMessage.remove_header(_D.XN_TIME)
+				message_received.emit(msg_type, uid, name, pMessage.get_xml())
 
 func _build_user_data_reply() -> XmlMessage:
 	var msg = XmlMessage.new()
-	msg.add_header(XN_TYPE, MessageTypeNames[MessageType.MT_UserData])
-	msg.add_data(XN_QUERYOP, QueryOpNames[QueryOp.QO_Result])
-	msg.add_data(XN_NAME, local_user.get("name", ""))
-	msg.add_data(XN_VERSION, local_user.get("version", ""))
-	msg.add_data(XN_STATUS, local_user.get("status", ""))
-	msg.add_data(XN_AVATAR, str(local_user.get("avatar", 0)))
-	msg.add_data(XN_NOTE, local_user.get("note", ""))
-	msg.add_data(XN_USERCAPS, str(local_user.get("caps", 0)))
+	msg.add_header(_D.XN_TYPE, _D.MessageTypeNames[_D.MessageType.MT_UserData])
+	msg.add_data(_D.XN_QUERYOP, _D.QueryOpNames[_D.QueryOp.QO_Result])
+	msg.add_data(_D.XN_NAME, local_user.get("name", ""))
+	msg.add_data(_D.XN_VERSION, local_user.get("version", ""))
+	msg.add_data(_D.XN_STATUS, local_user.get("status", ""))
+	msg.add_data(_D.XN_AVATAR, str(local_user.get("avatar", 0)))
+	msg.add_data(_D.XN_NOTE, local_user.get("note", ""))
+	msg.add_data(_D.XN_USERCAPS, str(local_user.get("caps", 0)))
 	return msg
 
 # -- Internal: File handling --
@@ -281,13 +282,13 @@ func _on_connection_lost(user_id: String) -> void:
 
 func _receive_progress(user_id: String, data: String) -> void:
 	var msg = XmlMessage.new(data)
-	var uid = msg.header(XN_FROM)
+	var uid = msg.header(_D.XN_FROM)
 	var user = get_user(uid)
 	var name = user.get("name", uid)
-	message_received.emit(MessageType.MT_File, uid, name, msg.to_string())
+	message_received.emit(_D.MessageType.MT_File, uid, name, msg.get_xml())
 
 func _receive_web_message(data: String) -> void:
-	message_received.emit(MessageType.MT_WebFailed, "", "", data)
+	message_received.emit(_D.MessageType.MT_WebFailed, "", "", data)
 
 func _on_network_state_changed() -> void:
 	connection_state_changed.emit()

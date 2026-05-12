@@ -1,4 +1,5 @@
 extends Control
+const _D = preload("res://scripts/network/definitions.gd")
 
 @onready var user_list: ItemList = %UserItemList
 @onready var chat_log: RichTextLabel = %ChatLog
@@ -59,21 +60,21 @@ func _on_send_pressed():
 	var msg = LanMessenger.messaging
 	if msg and not uid.is_empty():
 		var xml = XmlMessage.new()
-		xml.add_data(XN_MESSAGE, text)
-		msg.send_message(MessageType.MT_Message, uid, xml)
+		xml.add_data(_D.XN_MESSAGE, text)
+		msg.send_message(_D.MessageType.MT_Message, uid, xml)
 
 	chat_log.text += "\n[b][color=#f0c644]Me[/color][/b]: " + text
 	message_input.text = ""
 	message_input.grab_focus()
 
 func _on_message_received(type: int, user_id: String, name: String, body: String):
-	if type == MessageType.MT_Broadcast:
+	if type == _D.MessageType.MT_Broadcast:
 		chat_log.text += "\n[color=#faa61a][Broadcast from %s][/color]: %s" % [name, body]
-	elif type == MessageType.MT_ChatState:
+	elif type == _D.MessageType.MT_ChatState:
 		chat_log.text += "\n[color=#8e9297]* %s is %s[/color]" % [name, body]
-	elif type == MessageType.MT_Status:
+	elif type == _D.MessageType.MT_Status:
 		chat_log.text += "\n[color=#8e9297]* %s status: %s[/color]" % [name, body]
-	elif type == MessageType.MT_File or type == MessageType.MT_Folder:
+	elif type == _D.MessageType.MT_File or type == _D.MessageType.MT_Folder:
 		chat_log.text += "\n[color=#00aff4][File from %s]: %s[/color]" % [name, body]
 	else:
 		chat_log.text += "\n[b][color=#40444b]%s[/color][/b]: %s" % [name, body]

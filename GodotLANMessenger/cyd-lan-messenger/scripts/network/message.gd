@@ -1,4 +1,11 @@
 class_name Message
+const _D = preload("res://scripts/network/definitions.gd")
+const MessageTypeNames = _D.MessageTypeNames
+const XN_FROM = _D.XN_FROM
+const XN_TO = _D.XN_TO
+const XN_MESSAGEID = _D.XN_MESSAGEID
+const XN_TYPE = _D.XN_TYPE
+const XN_TIME = _D.XN_TIME
 
 static func add_header(type: int, id: int, local_id: String, peer_id: String, msg: XmlMessage) -> String:
 	if not msg:
@@ -9,7 +16,7 @@ static func add_header(type: int, id: int, local_id: String, peer_id: String, ms
 		msg.add_header(XN_TO, peer_id)
 	msg.add_header(XN_MESSAGEID, str(id))
 	msg.add_header(XN_TYPE, MessageTypeNames[type])
-	return msg.to_string()
+	return msg.get_xml()
 
 static func get_header(text: String) -> Dictionary:
 	var msg = XmlMessage.new(text)

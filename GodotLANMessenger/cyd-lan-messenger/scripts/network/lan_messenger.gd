@@ -1,5 +1,7 @@
 extends Node
 
+const _D = preload("res://scripts/network/definitions.gd")
+
 var messaging: Node = null
 
 func _ready():
@@ -18,7 +20,7 @@ func _ready():
 		"avatar": 0,
 		"group": "General",
 		"note": "",
-		"caps": UserCap.UC_File | UserCap.UC_Folder
+		"caps": _D.UserCap.UC_File | _D.UserCap.UC_Folder
 	}
 
 	var settings = {

@@ -1,4 +1,5 @@
 extends Node
+const _D = preload("res://scripts/network/definitions.gd")
 signal new_connection(user_id, address)
 signal connection_lost(user_id)
 signal message_received(pHeader, data)
@@ -63,16 +64,16 @@ func send_message(receiver_id: String, data: String) -> void:
 	if _crypto:
 		cipher_data = _crypto.encrypt(receiver_id, clear_data)
 	if cipher_data.is_empty(): return
-	cipher_data = Datagram.add_header(DatagramType.DT_Message, cipher_data)
+	cipher_data = Datagram.add_header(_D.DatagramType.DT_Message, cipher_data)
 	stream.send_message(cipher_data)
 
 func init_send_file(receiver_id: String, address: String, data: String) -> void:
 	var msg = XmlMessage.new(data)
-	var file_type = Helper.index_of(FileTypeNames, msg.data(XN_FILETYPE))
+	var file_type = Helper.index_of(_D.FileTypeNames, msg.data(_D.XN_FILETYPE))
 	var sender = preload("file_sender.gd").new(
-		msg.data(XN_FILEID), local_id, receiver_id,
-		msg.data(XN_FILEPATH), msg.data(XN_FILENAME),
-		int(msg.data(XN_FILESIZE)), address, _tcp_port, file_type)
+		msg.data(_D.XN_FILEID), local_id, receiver_id,
+		msg.data(_D.XN_FILEPATH), msg.data(_D.XN_FILENAME),
+		int(msg.data(_D.XN_FILESIZE)), address, _tcp_port, file_type)
 	sender.progress_updated.connect(_on_file_progress_updated)
 	_send_list.append(sender)
 	add_child(sender)
@@ -80,31 +81,31 @@ func init_send_file(receiver_id: String, address: String, data: String) -> void:
 
 func init_receive_file(sender_id: String, address: String, data: String) -> void:
 	var msg = XmlMessage.new(data)
-	var file_type = Helper.index_of(FileTypeNames, msg.data(XN_FILETYPE))
+	var file_type = Helper.index_of(_D.FileTypeNames, msg.data(_D.XN_FILETYPE))
 	var receiver = preload("file_receiver.gd").new(
-		msg.data(XN_FILEID), sender_id,
-		msg.data(XN_FILEPATH), msg.data(XN_FILENAME),
-		int(msg.data(XN_FILESIZE)), address, _tcp_port, file_type)
+		msg.data(_D.XN_FILEID), sender_id,
+		msg.data(_D.XN_FILEPATH), msg.data(_D.XN_FILENAME),
+		int(msg.data(_D.XN_FILESIZE)), address, _tcp_port, file_type)
 	receiver.progress_updated.connect(_on_file_progress_updated)
 	_receive_list.append(receiver)
 	add_child(receiver)
 
 func file_operation(mode: int, user_id: String, data: String) -> void:
 	var msg = XmlMessage.new(data)
-	var file_op = Helper.index_of(FileOpNames, msg.data(XN_FILEOP))
-	var fid = msg.data(XN_FILEID)
-	if mode == FileMode.FM_Send:
+	var file_op = Helper.index_of(_D.FileOpNames, msg.data(_D.XN_FILEOP))
+	var fid = msg.data(_D.XN_FILEID)
+	if mode == _D.FileMode.FM_Send:
 		var sender = _get_sender(fid, user_id)
 		if not sender: return
 		match file_op:
-			FileOp.FO_Cancel, FileOp.FO_Abort:
+			_D.FileOp.FO_Cancel, _D.FileOp.FO_Abort:
 				sender.stop()
 				_remove_sender(sender)
 	else:
 		var receiver = _get_receiver(fid, user_id)
 		if not receiver: return
 		match file_op:
-			FileOp.FO_Cancel, FileOp.FO_Abort:
+			_D.FileOp.FO_Cancel, _D.FileOp.FO_Abort:
 				receiver.stop()
 				_remove_receiver(receiver)
 
@@ -139,22 +140,22 @@ func _on_msg_stream_connection_lost(user_id: String) -> void:
 
 func _on_file_progress_updated(mode: int, op: int, ftype: int, fid: String, user_id: String, data: String) -> void:
 	var msg = XmlMessage.new()
-	msg.add_header(XN_FROM, user_id)
-	msg.add_header(XN_TO, local_id)
-	msg.add_data(XN_MODE, FileModeNames[mode])
-	msg.add_data(XN_FILETYPE, FileTypeNames[ftype])
-	msg.add_data(XN_FILEOP, FileOpNames[op])
-	msg.add_data(XN_FILEID, fid)
+	msg.add_header(_D.XN_FROM, user_id)
+	msg.add_header(_D.XN_TO, local_id)
+	msg.add_data(_D.XN_MODE, _D.FileModeNames[mode])
+	msg.add_data(_D.XN_FILETYPE, _D.FileTypeNames[ftype])
+	msg.add_data(_D.XN_FILEOP, _D.FileOpNames[op])
+	msg.add_data(_D.XN_FILEID, fid)
 	match op:
-		FileOp.FO_Complete, FileOp.FO_Error:
-			msg.add_data(XN_FILEPATH, data)
-			if mode == FileMode.FM_Send:
+		_D.FileOp.FO_Complete, _D.FileOp.FO_Error:
+			msg.add_data(_D.XN_FILEPATH, data)
+			if mode == _D.FileMode.FM_Send:
 				_remove_sender(_get_sender(fid, user_id))
 			else:
 				_remove_receiver(_get_receiver(fid, user_id))
-		FileOp.FO_Progress:
-			msg.add_data(XN_FILESIZE, data)
-	var sz = msg.to_string()
+		_D.FileOp.FO_Progress:
+			msg.add_data(_D.XN_FILESIZE, data)
+	var sz = msg.get_xml()
 	progress_received.emit(user_id, sz)
 
 func _on_receive_message(user_id: String, address: String, data: PackedByteArray) -> void:
@@ -164,12 +165,12 @@ func _on_receive_message(user_id: String, address: String, data: PackedByteArray
 	pHeader["address"] = address
 	var cipher_data = Datagram.get_data(data)
 	match pHeader["type"]:
-		DatagramType.DT_PublicKey:
+		_D.DatagramType.DT_PublicKey:
 			_send_session_key(user_id, cipher_data)
-		DatagramType.DT_Handshake:
+		_D.DatagramType.DT_Handshake:
 			if _crypto: _crypto.retrieve_aes(user_id, cipher_data)
 			new_connection.emit(user_id, address)
-		DatagramType.DT_Message:
+		_D.DatagramType.DT_Message:
 			var clear_data = cipher_data
 			if _crypto: clear_data = _crypto.decrypt(user_id, cipher_data)
 			if clear_data.is_empty(): return
@@ -195,7 +196,7 @@ func _send_public_key(user_id: String) -> void:
 	var stream = _message_map.get(user_id, null)
 	if not stream: return
 	var public_key = _crypto.public_key if _crypto else PackedByteArray()
-	public_key = Datagram.add_header(DatagramType.DT_PublicKey, public_key)
+	public_key = Datagram.add_header(_D.DatagramType.DT_PublicKey, public_key)
 	stream.send_message(public_key)
 
 func _send_session_key(user_id: String, public_key: PackedByteArray) -> void:
@@ -203,7 +204,7 @@ func _send_session_key(user_id: String, public_key: PackedByteArray) -> void:
 	if not stream: return
 	var session_key = PackedByteArray()
 	if _crypto: session_key = _crypto.generate_aes(user_id, public_key)
-	session_key = Datagram.add_header(DatagramType.DT_Handshake, session_key)
+	session_key = Datagram.add_header(_D.DatagramType.DT_Handshake, session_key)
 	stream.send_message(session_key)
 
 func _get_sender(fid: String, uid: String):

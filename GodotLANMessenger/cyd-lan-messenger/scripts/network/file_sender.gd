@@ -1,9 +1,10 @@
 extends Node
+const _D = preload("res://scripts/network/definitions.gd")
 signal progress_updated(mode, op, type, id, user_id, data)
 
 var id: String = ""
 var peer_id: String = ""
-var type: int = FileType.FT_Normal
+var type: int = _D.FileType.FT_Normal
 
 var _local_id: String = ""
 var _file_path: String = ""
@@ -63,7 +64,7 @@ func _process(delta):
 
 func _on_disconnected() -> void:
 	if _active:
-		progress_updated.emit(FileMode.FM_Send, FileOp.FO_Error, type, id, peer_id, "")
+		progress_updated.emit(_D.FileMode.FM_Send, _D.FileOp.FO_Error, type, id, peer_id, "")
 
 func _on_ready_read() -> void:
 	if not _file:
@@ -73,23 +74,23 @@ func _on_ready_read() -> void:
 func _on_timer_timeout() -> void:
 	if not _active: return
 	if _file:
-		progress_updated.emit(FileMode.FM_Send, FileOp.FO_Progress, type, id, peer_id, str(_file.get_position()))
+		progress_updated.emit(_D.FileMode.FM_Send, _D.FileOp.FO_Progress, type, id, peer_id, str(_file.get_position()))
 
 func _send_file() -> void:
 	if not _file:
 		_file = FileAccess.open(_file_path, FileAccess.READ)
 		if not _file:
 			_socket.disconnect_from_host()
-			progress_updated.emit(FileMode.FM_Send, FileOp.FO_Error, type, id, peer_id, "")
+			progress_updated.emit(_D.FileMode.FM_Send, _D.FileOp.FO_Error, type, id, peer_id, "")
 			return
 		_active = true
-		_timer = PROGRESS_TIMEOUT / 1000.0
+		_timer = _D.PROGRESS_TIMEOUT / 1000.0
 	var unsent = _file_size - _file.get_position()
 	if unsent == 0:
 		_active = false
 		_file.close()
 		_socket.disconnect_from_host()
-		progress_updated.emit(FileMode.FM_Send, FileOp.FO_Complete, type, id, peer_id, _file_path)
+		progress_updated.emit(_D.FileMode.FM_Send, _D.FileOp.FO_Complete, type, id, peer_id, _file_path)
 		return
 	var to_send = mini(BUFFER_SIZE, unsent)
 	var chunk = _file.get_buffer(to_send)

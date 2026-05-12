@@ -1,4 +1,5 @@
 extends Node
+const _D = preload("res://scripts/network/definitions.gd")
 signal broadcast_received(pHeader, data)
 signal connection_state_changed
 
@@ -75,7 +76,7 @@ func _process(delta):
 		_parse_datagram(address, packet)
 
 func _parse_datagram(address: String, data: PackedByteArray) -> void:
-	var pHeader = { "type": DatagramType.DT_Broadcast, "userId": "", "address": address }
+	var pHeader = { "type": _D.DatagramType.DT_Broadcast, "userId": "", "address": address }
 	var szData = data.get_string_from_utf8()
 	broadcast_received.emit(pHeader, szData)
 
@@ -91,6 +92,8 @@ func _set_default_broadcast() -> void:
 		var ip_b = int(ip_parts[i])
 		var mask_b = int(mask_parts[i])
 		var b = ip_b | (~mask_b & 0xFF)
-		if i > 0: broadcast += "."
-		else: broadcast = str(b)
+		if i > 0:
+			broadcast += "." + str(b)
+		else:
+			broadcast = str(b)
 	_default_broadcast = broadcast

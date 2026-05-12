@@ -1,4 +1,7 @@
 class_name Helper
+const _D = preload("res://scripts/network/definitions.gd")
+const DELIMITER = _D.DELIMITER
+const DELIMITER_ESC = _D.DELIMITER_ESC
 static func index_of(array: Array, value: String) -> int:
 	for i in range(array.size()):
 		if array[i] == value:
@@ -9,11 +12,11 @@ static func format_size(size: int) -> String:
 	if size < 1024:
 		return str(size) + " B"
 	elif size < 1024 * 1024:
-		return str(stepify(size / 1024.0, 0.1)) + " KB"
+		return str(snapped(size / 1024.0, 0.1)) + " KB"
 	elif size < 1024 * 1024 * 1024:
-		return str(stepify(size / (1024.0 * 1024.0), 0.1)) + " MB"
+		return str(snapped(size / (1024.0 * 1024.0), 0.1)) + " MB"
 	else:
-		return str(stepify(size / (1024.0 * 1024.0 * 1024.0), 0.1)) + " GB"
+		return str(snapped(size / (1024.0 * 1024.0 * 1024.0), 0.1)) + " GB"
 
 static func get_uuid() -> String:
 	return str(Time.get_unix_time_from_system()) + str(randi())

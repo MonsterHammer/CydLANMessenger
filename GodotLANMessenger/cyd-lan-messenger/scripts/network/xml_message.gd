@@ -1,4 +1,8 @@
 class_name XmlMessage
+const _D = preload("res://scripts/network/definitions.gd")
+const XN_ROOT = _D.XN_ROOT
+const XN_HEAD = _D.XN_HEAD
+const XN_BODY = _D.XN_BODY
 var _xml: String
 
 func _init(text: String = "") -> void:
@@ -37,7 +41,7 @@ func clone() -> XmlMessage:
 func is_valid() -> bool:
 	return _xml.contains("<" + XN_ROOT + ">")
 
-func to_string() -> String:
+func get_xml() -> String:
 	return _xml
 
 func _add_xml_node(parent_node: String, node_name: String, node_value: String) -> bool:
