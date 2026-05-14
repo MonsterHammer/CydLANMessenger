@@ -10,16 +10,19 @@ const CLR_BUBBLE_RECV := Color("#303030"); const CLR_TEXT := Color("#e0e0e0")
 const CLR_GREEN := Color("#7fd88f"); const CLR_ACTIVE := Color("#303030")
 const CLR_ST := {"chat": Color("#7fd88f"),"busy": Color("#e06c75"),"dnd": Color("#e06c75"),"brb": Color("#f5a742"),"away": Color("#f5a742"),"gone": Color("#6a6a6a")}
 const ST_NAMES := {"chat":"Online","busy":"Busy","dnd":"Do Not Disturb","brb":"Be Right Back","away":"Away","gone":"Offline"}
-const AVATAR_SIZE := 28
+const ST_CODES := ["chat","busy","dnd","brb","away","gone"]
+const SMILEYS := {":)":"😊",":D":"😄",":(":"😢",";)":"😉",":p":"😋",":P":"😋",":o":"😮",":O":"😮",":/":"😕",":|":"😐",":'(":"😢",":')":"😂","<3":"❤️","</3":"💔","^^":"😊",":*)":"😳","%-)":"🤔","B)":"😎","8)":"😎",":-?":"🤔"}
+const AVATAR_SIZE := 28; const HIST_FILE := "user://chat_history.json"
 
 @onready var title_bar: Panel = %TitleBar
 @onready var minimize_btn: Button = %MinimizeBtn; @onready var maximize_btn: Button = %MaximizeBtn; @onready var close_btn: Button = %CloseBtn
 @onready var user_vbox: VBoxContainer = %UserVBox; @onready var search_input: LineEdit = %SearchInput
+@onready var input_panel = %InputPanel
 @onready var message_vbox: VBoxContainer = %MessageVBox; @onready var message_scroll: ScrollContainer = %MessageScroll
 @onready var message_input: TextEdit = %MessageInput; @onready var send_btn: Button = %SendButton
-@onready var chat_header: Panel = %ChatHeader; @onready var chat_user_name: Label = %ChatUserName
+@onready var chat_header = %ChatHeader; @onready var chat_user_name: Label = %ChatUserName
 @onready var chat_status_label: Label = %ChatStatus; @onready var chat_avatar: ColorRect = %ChatAvatar
-@onready var no_chat_label: Label = %NoChatLabel; @onready var input_panel: Panel = %InputPanel
+@onready var no_chat_label: Label = %NoChatLabel
 
 var _user_item_map: Dictionary = {}; var _user_data_map: Dictionary = {}; var _user_avatar_colors: Dictionary = {}
 var _user_dot_map: Dictionary = {}; var _user_status_map: Dictionary = {}; var _sent_recently: Dictionary = {}
@@ -29,12 +32,13 @@ var _has_focus: bool = true; var _unread_count: int = 0; var _selected_user_id: 
 var _search_text: String = ""; var _message_history: Dictionary = {}; var _maximized: bool = false
 var _pre_maximize_rect: Rect2i = Rect2i(); var _dragging: bool = false; var _drag_offset: Vector2 = Vector2()
 var _context_uid: String = ""; var _local_status: String = "chat"; var _typing_timer: float = 0.0
+var _status_btn: Button = null; var _history_dirty: bool = false
 
 func _ready():
 	get_tree().set_auto_accept_quit(false); get_window().min_size = Vector2i(400, 300)
-	_setup_window(); _setup_signals(); _setup_tray()
+	_setup_window(); _setup_signals(); _setup_tray(); _load_history()
 	no_chat_label.visible = true; chat_header.visible = false; input_panel.visible = false
-	DisplayServer.window_set_title(APP_TITLE); call_deferred("_on_refresh_button_pressed")
+	DisplayServer.window_set_title(APP_TITLE); _setup_status_button(); call_deferred("_on_refresh_button_pressed")
 
 func _setup_window():
 	var win = get_window(); win.size = Vector2i(600, 400)
@@ -47,6 +51,7 @@ func _setup_window():
 func _notification(what: int) -> void:
 	match what:
 		NOTIFICATION_WM_CLOSE_REQUEST:
+			if _history_dirty: _save_history()
 			if _allow_quit: get_tree().quit()
 			else: _hide_to_tray()
 		NOTIFICATION_APPLICATION_FOCUS_IN, NOTIFICATION_WM_WINDOW_FOCUS_IN: _has_focus = true; _clear_unread()
@@ -63,6 +68,40 @@ func _setup_signals():
 	search_input.text_changed.connect(_on_search_changed); send_btn.pressed.connect(_on_send_pressed)
 	minimize_btn.pressed.connect(_on_minimize_pressed); maximize_btn.pressed.connect(_on_maximize_pressed)
 	close_btn.pressed.connect(_on_close_pressed); title_bar.gui_input.connect(_on_title_gui_input)
+
+func _setup_status_button():
+	_status_btn = Button.new(); _status_btn.flat = true; _status_btn.size_flags_horizontal = Control.SIZE_SHRINK_BEGIN
+	_status_btn.add_theme_color_override("font_color", CLR_GREEN); _status_btn.add_theme_font_size_override("font_size", 11)
+	_status_btn.text = "● Online"; _status_btn.mouse_filter = Control.MOUSE_FILTER_STOP
+	var sidebar_header = title_bar.get_node("../BodyHBox/LeftSidebar/SidebarVBox/SearchHBox")
+	sidebar_header.add_child(_status_btn)
+	_status_btn.pressed.connect(_show_status_menu)
+
+func _show_status_menu():
+	var m = PopupMenu.new(); m.name = "StatusMenu"
+	for i in range(ST_CODES.size()):
+		var code = ST_CODES[i]; var label = ST_NAMES[code]; var dot = ""
+		if code == "chat": dot = "● "
+		elif code in ["busy","dnd"]: dot = "● "
+		elif code in ["brb","away"]: dot = "● "
+		else: dot = "● "
+		m.add_item(dot + label, i)
+		if code == _local_status: m.set_item_checked(i, true)
+	m.id_pressed.connect(func(id): _change_status(ST_CODES[id]))
+	m.focus_exited.connect(func(): m.queue_free())
+	add_child(m); m.popup_on_parent(Rect2(_status_btn.global_position + Vector2(0, 20), Vector2(160, 10)))
+
+func _change_status(code: String):
+	_local_status = code; _status_btn.text = "● " + ST_NAMES[code]
+	var clr = CLR_ST.get(code, CLR_GREEN)
+	_status_btn.add_theme_color_override("font_color", clr)
+	if _messaging:
+		var xml = XmlMessage.new(); xml.add_data(_D.XN_STATUS, code)
+		_messaging.send_message(_D.MessageType.MT_Status, _messaging.local_user.get("id", ""), xml)
+		var bxml = XmlMessage.new(); bxml.add_data(_D.XN_STATUS, code)
+		var sz = Message.add_header(_D.MessageType.MT_Status, 0, _messaging.local_user.get("id", ""), "", bxml)
+		if _messaging.network and _messaging.network.has_method("send_broadcast"):
+			_messaging.network.send_broadcast(sz)
 
 func _on_title_gui_input(event: InputEvent):
 	if event is InputEventMouseButton and event.button_index == MOUSE_BUTTON_LEFT:
@@ -118,16 +157,17 @@ func _mark_unread(n: String): _unread_count += 1; _update_tray_tooltip(n); Displ
 func _clear_unread(): if _unread_count == 0: return; _unread_count = 0; DisplayServer.window_set_title(APP_TITLE); _update_tray_tooltip()
 func _update_tray_tooltip(n: String = ""):
 	if not _status_indicator: return
-	if _unread_count > 0:
-		var d = " unread message"
-		if _unread_count != 1: d += "s"
-		var suffix = "\nLatest: " + n if not n.is_empty() else ""
-		_status_indicator.tooltip = APP_TITLE + "\n" + str(_unread_count) + d + suffix
+	if _unread_count > 0: var d = " unread message"; if _unread_count != 1: d += "s"; _status_indicator.tooltip = APP_TITLE + "\n" + str(_unread_count) + d + (("\nLatest: " + n) if not n.is_empty() else "")
 	else: _status_indicator.tooltip = APP_TITLE
 
 func _gc(n: String) -> Color: return _user_avatar_colors.get(n) if _user_avatar_colors.has(n) else Color.from_hsv(abs(n.hash()) % 360 / 360.0, 0.45, 0.7)
 func _sc(s: String) -> Color: return CLR_ST.get(s, CLR_GREEN)
 func _sn(s: String) -> String: return ST_NAMES.get(s, "Online")
+
+func _parse_smileys(text: String) -> String:
+	var r = text
+	for code in SMILEYS: r = r.replace(code, SMILEYS[code])
+	return r
 
 func _on_refresh_button_pressed():
 	if not _net_started: _net_start()
@@ -196,18 +236,33 @@ func _create_user_item(uid: String, name: String) -> Button:
 func _on_user_gui(e: InputEvent, uid: String):
 	if e is InputEventMouseButton and e.button_index == MOUSE_BUTTON_RIGHT and e.pressed:
 		_context_uid = uid; var m = PopupMenu.new(); m.name = "Ctx"
-		m.add_item("Send Message", CTX_MSG); m.add_separator(); m.add_item("User Info", CTX_INFO)
+		m.add_item("Send Message", CTX_MSG); m.add_separator(); m.add_item("Send File", CTX_FILE); m.add_separator(); m.add_item("User Info", CTX_INFO)
 		m.id_pressed.connect(_on_ctx); m.focus_exited.connect(func(): m.queue_free()); add_child(m); m.popup_on_parent(Rect2(get_global_mouse_position(), Vector2(120,10)))
 
 func _on_ctx(id: int):
 	match id:
 		CTX_MSG: _select_user(_context_uid)
+		CTX_FILE: _send_file_to(_context_uid)
 		CTX_INFO: _show_info(_context_uid)
+
+func _send_file_to(uid: String):
+	var u = _user_data_map.get(uid, {}); var n = u.get("name", uid)
+	DisplayServer.file_dialog_show("Select file to send to " + n, "", "", false, DisplayServer.FILE_DIALOG_MODE_OPEN_FILE, [], func(ok, files, _f):
+		if ok and files.size() > 0 and _messaging:
+			var path = files[0]; var fa = FileAccess.open(path, FileAccess.READ)
+			var sz := 0
+			if fa: sz = fa.get_length(); fa.close()
+			var xml = XmlMessage.new(); xml.add_data(_D.XN_FILEPATH, path)
+			xml.add_data(_D.XN_FILENAME, path.get_file()); xml.add_data(_D.XN_FILESIZE, str(sz))
+			xml.add_data(_D.XN_FILETYPE, _D.FileTypeNames[_D.FileType.FT_Normal])
+			_messaging.send_message(_D.MessageType.MT_File, uid, xml)
+			_add_bubble("[File] " + path.get_file(), true, "Me")
+	)
 
 func _show_info(uid: String):
 	var u = _user_data_map.get(uid, {}); var n = u.get("name", uid); var s = _user_status_map.get(uid, "chat")
-	var a = u.get("address", "Unknown")
-	var d = AcceptDialog.new(); d.title = n; d.dialog_text = "Status: " + _sn(s) + "\nAddress: " + a + "\nID: " + uid; d.min_size = Vector2(300,120); d.ok_button_text = "Close"; add_child(d); d.popup_centered()
+	var a = u.get("address", "Unknown"); var v = u.get("version", "?")
+	var d = AcceptDialog.new(); d.title = n; d.dialog_text = "Status: " + _sn(s) + "\nAddress: " + a + "\nVersion: " + v + "\nID: " + uid; d.min_size = Vector2(300,140); d.ok_button_text = "Close"; add_child(d); d.popup_centered()
 
 func _select_user(uid: String):
 	if uid.is_empty() or uid == _selected_user_id: return
@@ -215,18 +270,14 @@ func _select_user(uid: String):
 	var u = _user_data_map.get(uid, {}); var n = u.get("name", "").strip_edges(); if n.is_empty(): n = uid
 	chat_user_name.text = n; var s = _user_status_map.get(uid, "chat"); chat_status_label.text = _sn(s); chat_status_label.add_theme_color_override("font_color", CLR_GREEN if s == "chat" else _sc(s))
 	var st = StyleBoxFlat.new(); st.bg_color = _gc(n); st.set_corner_radius_all(AVATAR_SIZE/2); st.corner_detail = 6; chat_avatar.add_theme_stylebox_override("panel", st)
-	for u2 in _user_item_map:
-		var it = _user_item_map[u2]; var ia = u2 == uid; var ast = StyleBoxFlat.new(); ast.bg_color = CLR_ACTIVE if ia else Color.TRANSPARENT; ast.set_corner_radius_all(0)
-		it.add_theme_stylebox_override("normal", ast); it.add_theme_stylebox_override("hover", ast)
+	for u2 in _user_item_map: var it = _user_item_map[u2]; var ia = u2 == uid; var ast = StyleBoxFlat.new(); ast.bg_color = CLR_ACTIVE if ia else Color.TRANSPARENT; ast.set_corner_radius_all(0); it.add_theme_stylebox_override("normal", ast); it.add_theme_stylebox_override("hover", ast)
 	for c in message_vbox.get_children(): c.queue_free()
 	if _message_history.has(uid): for e in _message_history[uid]: _add_bubble(e.text, e.is_sent, e.sender, e.time)
 	_scroll_bottom()
 
 func _on_search_changed(t: String):
 	_search_text = t.strip_edges()
-	for uid in _user_item_map:
-		var it = _user_item_map[uid]; var u = _user_data_map.get(uid, {}); var n = u.get("name", "").strip_edges(); if n.is_empty(): n = uid
-		it.visible = true if _search_text.is_empty() else n.to_lower().contains(_search_text.to_lower())
+	for uid in _user_item_map: var it = _user_item_map[uid]; var u = _user_data_map.get(uid, {}); var n = u.get("name", "").strip_edges(); if n.is_empty(): n = uid; it.visible = true if _search_text.is_empty() else n.to_lower().contains(_search_text.to_lower())
 
 func _on_send_pressed():
 	var text = message_input.text.strip_edges()
@@ -236,18 +287,20 @@ func _on_send_pressed():
 		_messaging.send_message(_D.MessageType.MT_Message, _selected_user_id, xml)
 	var t = Time.get_time_string_from_system(false)
 	_sent_recently[text + t] = true
-	_add_to_history(_selected_user_id, text, true, "Me", t)
-	_add_bubble(text, true, "Me", t)
+	var display = _parse_smileys(text)
+	_add_to_history(_selected_user_id, display, true, "Me", t)
+	_add_bubble(display, true, "Me", t)
 	message_input.text = ""; message_input.grab_focus()
 	await get_tree().create_timer(2.0).timeout; _sent_recently.erase(text + t)
 
 func _on_message_received(type: int, user_id: String, name: String, body: String):
 	if _messaging and _messaging.local_user.get("id", "") == user_id: return
-	var t = Time.get_time_string_from_system(false)
-	var key = body + t
+	if type == _D.MessageType.MT_File or type == _D.MessageType.MT_Folder: return
+	var t = Time.get_time_string_from_system(false); var key = body + t
 	if _sent_recently.has(key): return
-	_add_to_history(user_id, body, false, name, t)
-	if user_id == _selected_user_id: _add_bubble(body, false, name, t)
+	var display = _parse_smileys(body)
+	_add_to_history(user_id, display, false, name, t)
+	if user_id == _selected_user_id: _add_bubble(display, false, name, t)
 	if not _has_focus or _hidden_to_tray: _mark_unread(name)
 
 func _add_bubble(text: String, is_sent: bool, sender: String = "", ts: String = ""):
@@ -258,16 +311,11 @@ func _add_bubble(text: String, is_sent: bool, sender: String = "", ts: String = 
 	if is_sent: bs.set_corner_radius_all(cr); bs.corner_radius_top_right = 4
 	else: bs.set_corner_radius_all(cr); bs.corner_radius_top_left = 4
 	bs.corner_detail = 6; bs.content_margin_left = 12; bs.content_margin_right = 12; bs.content_margin_top = 8; bs.content_margin_bottom = 8
-	bubble.add_theme_stylebox_override("panel", bs)
-	bubble.size_flags_horizontal = Control.SIZE_SHRINK_END
-
+	bubble.add_theme_stylebox_override("panel", bs); bubble.size_flags_horizontal = Control.SIZE_SHRINK_END
 	var content = VBoxContainer.new(); content.size_flags_horizontal = Control.SIZE_EXPAND_FILL; bubble.add_child(content)
-	if not is_sent and not sender.is_empty():
-		var nl = Label.new(); nl.text = sender; nl.add_theme_font_size_override("font_size", 10); nl.add_theme_color_override("font_color", CLR_PRIMARY); content.add_child(nl)
+	if not is_sent and not sender.is_empty(): var nl = Label.new(); nl.text = sender; nl.add_theme_font_size_override("font_size", 10); nl.add_theme_color_override("font_color", CLR_PRIMARY); content.add_child(nl)
 	var ml = Label.new(); ml.text = text; ml.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART; ml.size_flags_horizontal = Control.SIZE_EXPAND_FILL; ml.add_theme_color_override("font_color", tc); ml.add_theme_font_size_override("font_size", 12); content.add_child(ml)
-	if not ts.is_empty():
-		var tl = Label.new(); tl.text = ts; tl.add_theme_font_size_override("font_size", 8); tl.add_theme_color_override("font_color", Color(0.5,0.5,0.5,0.7)); tl.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT; content.add_child(tl)
-
+	if not ts.is_empty(): var tl = Label.new(); tl.text = ts; tl.add_theme_font_size_override("font_size", 8); tl.add_theme_color_override("font_color", Color(0.5,0.5,0.5,0.7)); tl.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT; content.add_child(tl)
 	if is_sent: var sp = Control.new(); sp.size_flags_horizontal = Control.SIZE_EXPAND_FILL; row.add_child(sp)
 	row.add_child(bubble)
 	if not is_sent: var sp = Control.new(); sp.size_flags_horizontal = Control.SIZE_EXPAND_FILL; row.add_child(sp)
@@ -276,7 +324,18 @@ func _add_bubble(text: String, is_sent: bool, sender: String = "", ts: String = 
 func _add_to_history(uid: String, text: String, is_sent: bool, sender: String, ts: String):
 	if not _message_history.has(uid): _message_history[uid] = []
 	_message_history[uid].append({text=text, is_sent=is_sent, sender=sender, time=ts})
+	_history_dirty = true
 
-func _scroll_bottom():
-	await get_tree().process_frame
-	message_scroll.scroll_vertical = int(message_scroll.get_v_scroll_bar().max_value)
+func _load_history():
+	if not FileAccess.file_exists(HIST_FILE): return
+	var f = FileAccess.open(HIST_FILE, FileAccess.READ)
+	if not f: return
+	var data = JSON.parse_string(f.get_as_text())
+	f.close()
+	if typeof(data) == TYPE_DICTIONARY: _message_history = data
+
+func _save_history():
+	var f = FileAccess.open(HIST_FILE, FileAccess.WRITE)
+	if f: f.store_string(JSON.new().stringify(_message_history)); f.close(); _history_dirty = false
+
+func _scroll_bottom(): await get_tree().process_frame; message_scroll.scroll_vertical = int(message_scroll.get_v_scroll_bar().max_value)
