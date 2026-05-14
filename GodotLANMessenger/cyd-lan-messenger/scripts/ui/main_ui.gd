@@ -5,19 +5,13 @@ const _LanMessenger = preload("res://scripts/network/lan_messenger.gd")
 const APP_TITLE := "CydLAN Messenger"
 const TRAY_MENU_SHOW := 1
 const TRAY_MENU_QUIT := 2
-const WINDOW_W := 600
-const WINDOW_H := 400
+
 const CLR_PRIMARY := Color("#0084FF")
-const CLR_BG := Color("#efeae2")
-const CLR_SIDEBAR := Color("#FFFFFF")
-const CLR_TITLE_BG := Color("#1C1E21")
 const CLR_BUBBLE_SENT := Color("#0084FF")
 const CLR_BUBBLE_RECV := Color("#E4E6EB")
 const CLR_TEXT := Color("#050505")
-const CLR_SECONDARY := Color("#65676B")
 const CLR_GREEN := Color("#31A24C")
 const CLR_ACTIVE := Color("#E7F3FF")
-const CLR_BORDER := Color(0.88, 0.88, 0.88)
 
 const AVATAR_SIZE := 28
 
@@ -37,8 +31,6 @@ const AVATAR_SIZE := 28
 @onready var chat_avatar: ColorRect = %ChatAvatar
 @onready var no_chat_label: Label = %NoChatLabel
 @onready var input_panel: Panel = %InputPanel
-@onready var left_sidebar: Panel = %LeftSidebar
-@onready var chat_view: Panel = %ChatView
 
 var _user_item_map: Dictionary = {}
 var _user_data_map: Dictionary = {}
@@ -63,7 +55,6 @@ func _ready():
 	get_tree().set_auto_accept_quit(false)
 	get_window().min_size = Vector2i(400, 300)
 	_setup_window()
-	_apply_styling()
 	_setup_signals()
 	_setup_tray()
 	no_chat_label.visible = true
@@ -73,10 +64,10 @@ func _ready():
 
 func _setup_window():
 	var win = get_window()
-	win.size = Vector2i(WINDOW_W, WINDOW_H)
+	win.size = Vector2i(600, 400)
 	DisplayServer.window_set_flag(DisplayServer.WINDOW_FLAG_BORDERLESS, true)
 	var ss = DisplayServer.screen_get_size()
-	DisplayServer.window_set_position(Vector2i(ss.x / 2 - WINDOW_W / 2, ss.y / 2 - WINDOW_H / 2))
+	DisplayServer.window_set_position(Vector2i(ss.x / 2 - 300, ss.y / 2 - 200))
 	var icon_tex = load("res://icon.svg")
 	if icon_tex:
 		var img = icon_tex.get_image()
@@ -138,155 +129,6 @@ func _on_close_pressed():
 		get_tree().quit()
 	else:
 		_hide_to_tray()
-
-func _apply_styling():
-	var root_s = StyleBoxFlat.new()
-	root_s.bg_color = CLR_BG
-	add_theme_stylebox_override("panel", root_s)
-
-	var ts = StyleBoxFlat.new()
-	ts.bg_color = CLR_TITLE_BG
-	ts.set_corner_radius_all(0)
-	title_bar.add_theme_stylebox_override("panel", ts)
-
-	title_bar.mouse_filter = Control.MOUSE_FILTER_STOP
-
-	var tbs = StyleBoxFlat.new()
-	tbs.bg_color = Color.TRANSPARENT
-	var tb_hbox = title_bar.get_node("TitleHBox")
-	tb_hbox.add_theme_constant_override("separation", 0)
-	tb_hbox.mouse_filter = Control.MOUSE_FILTER_PASS
-
-	var tl = title_bar.get_node("TitleHBox/TitleLabel")
-	tl.add_theme_color_override("font_color", Color.WHITE)
-
-	var ssb = StyleBoxFlat.new()
-	ssb.bg_color = CLR_BORDER
-	ssb.set_corner_radius_all(0)
-	var v = StyleBoxFlat.new()
-	v.bg_color = Color.TRANSPARENT
-
-	minimize_btn.add_theme_stylebox_override("normal", v)
-	minimize_btn.add_theme_stylebox_override("hover", v)
-	minimize_btn.add_theme_stylebox_override("pressed", v)
-	minimize_btn.add_theme_stylebox_override("disabled", v)
-	minimize_btn.texture_normal = load("res://Assets/NavIcons/Subtract.png")
-
-	maximize_btn.add_theme_stylebox_override("normal", v)
-	maximize_btn.add_theme_stylebox_override("hover", v)
-	maximize_btn.add_theme_stylebox_override("pressed", v)
-	maximize_btn.add_theme_stylebox_override("disabled", v)
-	maximize_btn.texture_normal = load("res://Assets/NavIcons/Stop.png")
-
-	close_btn.add_theme_stylebox_override("normal", v)
-	close_btn.add_theme_stylebox_override("hover", v)
-	close_btn.add_theme_stylebox_override("pressed", v)
-	close_btn.add_theme_stylebox_override("disabled", v)
-	close_btn.texture_normal = load("res://Assets/NavIcons/Close.png")
-
-	var sidebar_s = StyleBoxFlat.new()
-	sidebar_s.bg_color = CLR_SIDEBAR
-	sidebar_s.set_corner_radius_all(0)
-	sidebar_s.border_width_right = 1
-	sidebar_s.border_color = CLR_BORDER
-	left_sidebar.add_theme_stylebox_override("panel", sidebar_s)
-
-	var sb_vbox = left_sidebar.get_node("SidebarVBox")
-	sb_vbox.add_theme_constant_override("separation", 0)
-
-	search_input.add_theme_color_override("font_color", CLR_TEXT)
-	search_input.add_theme_color_override("placeholder_color", CLR_SECONDARY)
-	search_input.add_theme_color_override("caret_color", CLR_PRIMARY)
-	search_input.add_theme_constant_override("minimum_character_width", 0)
-	var search_bg = StyleBoxFlat.new()
-	search_bg.bg_color = Color(0.9, 0.9, 0.9)
-	search_bg.set_corner_radius_all(0)
-	search_bg.content_margin_left = 8
-	search_bg.content_margin_right = 8
-	search_bg.content_margin_top = 4
-	search_bg.content_margin_bottom = 4
-	search_input.add_theme_stylebox_override("normal", search_bg)
-	search_input.add_theme_stylebox_override("focus", search_bg)
-	search_input.add_theme_font_size_override("font_size", 12)
-
-	var sb_border = StyleBoxFlat.new()
-	sb_border.bg_color = CLR_BORDER
-	sb_border.set_corner_radius_all(0)
-	sb_border.border_width_bottom = 1
-	sb_border.border_color = CLR_BORDER
-
-	var us = left_sidebar.get_node("SidebarVBox/UserScroll")
-	var us_bg = StyleBoxFlat.new()
-	us_bg.bg_color = CLR_SIDEBAR
-	us.add_theme_stylebox_override("panel", us_bg)
-	us.get_v_scroll_bar().add_theme_constant_override("scroll", 4)
-	us.scroll_horizontal = 0
-
-	var cvs = StyleBoxFlat.new()
-	cvs.bg_color = CLR_BG
-	cvs.set_corner_radius_all(0)
-	chat_view.add_theme_stylebox_override("panel", cvs)
-
-	var chs = StyleBoxFlat.new()
-	chs.bg_color = CLR_SIDEBAR
-	chs.set_corner_radius_all(0)
-	chs.border_width_bottom = 1
-	chs.border_color = CLR_BORDER
-	chat_header.add_theme_stylebox_override("panel", chs)
-
-	var ch_hbox = chat_header.get_node("ChatHeaderHBox")
-	ch_hbox.add_theme_constant_override("separation", 8)
-
-	chat_user_name.add_theme_color_override("font_color", CLR_TEXT)
-	chat_status.add_theme_color_override("font_color", CLR_GREEN)
-
-	var ca_style = StyleBoxFlat.new()
-	ca_style.set_corner_radius_all(AVATAR_SIZE / 2)
-	ca_style.bg_color = Color("#E4E6EB")
-	chat_avatar.add_theme_stylebox_override("panel", ca_style)
-	chat_avatar.custom_minimum_size = Vector2(AVATAR_SIZE, AVATAR_SIZE)
-
-	no_chat_label.add_theme_color_override("font_color", CLR_SECONDARY)
-	no_chat_label.add_theme_font_size_override("font_size", 13)
-
-	var istyle = StyleBoxFlat.new()
-	istyle.bg_color = CLR_SIDEBAR
-	istyle.set_corner_radius_all(0)
-	istyle.border_width_top = 1
-	istyle.border_color = CLR_BORDER
-	input_panel.add_theme_stylebox_override("panel", istyle)
-
-	var ih = input_panel.get_node("InputHBox")
-	ih.add_theme_constant_override("separation", 4)
-
-	message_input.add_theme_color_override("font_color", CLR_TEXT)
-	message_input.add_theme_color_override("placeholder_color", CLR_SECONDARY)
-	message_input.add_theme_color_override("caret_color", CLR_PRIMARY)
-	message_input.add_theme_constant_override("minimum_character_width", 0)
-	var input_bg = StyleBoxFlat.new()
-	input_bg.bg_color = Color(0.94, 0.94, 0.94)
-	input_bg.set_corner_radius_all(0)
-	input_bg.content_margin_left = 8
-	input_bg.content_margin_right = 8
-	input_bg.content_margin_top = 6
-	input_bg.content_margin_bottom = 6
-	message_input.add_theme_stylebox_override("normal", input_bg)
-	message_input.add_theme_stylebox_override("focus", input_bg)
-	message_input.add_theme_font_size_override("font_size", 12)
-
-	send_btn.add_theme_color_override("font_color", CLR_PRIMARY)
-	send_btn.add_theme_font_size_override("font_size", 16)
-	var btn_n = StyleBoxFlat.new()
-	btn_n.bg_color = Color.TRANSPARENT
-	send_btn.add_theme_stylebox_override("normal", btn_n)
-	send_btn.add_theme_stylebox_override("hover", btn_n)
-	send_btn.add_theme_stylebox_override("pressed", btn_n)
-	send_btn.add_theme_stylebox_override("disabled", btn_n)
-
-	message_scroll.scroll_horizontal = 0
-	var msbg = StyleBoxFlat.new()
-	msbg.bg_color = Color.TRANSPARENT
-	message_scroll.add_theme_stylebox_override("panel", msbg)
 
 func _setup_tray() -> void:
 	_tray_menu = PopupMenu.new()
@@ -479,7 +321,7 @@ func _create_user_item(uid: String, name: String) -> Button:
 	ds.border_width_right = 2
 	ds.border_width_top = 2
 	ds.border_width_bottom = 2
-	ds.border_color = CLR_SIDEBAR
+	ds.border_color = Color.WHITE
 	dot.add_theme_stylebox_override("panel", ds)
 	dot.mouse_filter = Control.MOUSE_FILTER_PASS
 	dot.position = Vector2(24, 26)
