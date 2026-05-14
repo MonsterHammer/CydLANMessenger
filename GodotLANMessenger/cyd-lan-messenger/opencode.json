@@ -1,0 +1,10 @@
+{
+  "$schema": "https://opencode.ai/config.json",
+  "mcp": {
+    "godot-mcp": {
+      "type": "local",
+      "command": ["mcp-remote", "http://localhost:9080/mcp"],
+      "enabled": true
+    }
+  }
+}
