@@ -172,6 +172,18 @@ func _parse_smileys(text: String) -> String:
 	for code in SMILEYS: r = r.replace(code, SMILEYS[code])
 	return r
 
+func _display_name(user: Dictionary, uid: String = "") -> String:
+	var name = str(user.get("name", "")).strip_edges()
+	if not name.is_empty() and name != uid:
+		return name
+	var clean_uid = uid.strip_edges()
+	while not clean_uid.is_empty() and _is_hex_prefix_char(clean_uid.substr(0, 1)):
+		clean_uid = clean_uid.substr(1)
+	return clean_uid if not clean_uid.is_empty() else uid
+
+func _is_hex_prefix_char(value: String) -> bool:
+	return value.is_valid_int() or value in ["A", "B", "C", "D", "E", "F", "a", "b", "c", "d", "e", "f"]
+
 func _on_refresh_button_pressed():
 	if not _net_started: _net_start()
 	elif _messaging: _messaging.refresh()
@@ -190,7 +202,7 @@ func _sync_existing_users(): if _messaging: for u in _messaging.user_list: _on_u
 func _on_user_added(user: Dictionary):
 	var uid = user.get("id", "")
 	if uid.is_empty() or _user_item_map.has(uid): return
-	var name = user.get("name", "").strip_edges(); if name.is_empty(): name = uid
+	var name = _display_name(user, uid)
 	_user_data_map[uid] = user; _user_status_map[uid] = user.get("status", "chat")
 	var item = _create_user_item(uid, name); user_vbox.add_child(item); _user_item_map[uid] = item
 
@@ -249,7 +261,7 @@ func _on_ctx(id: int):
 		CTX_INFO: _show_info(_context_uid)
 
 func _send_file_to(uid: String):
-	var u = _user_data_map.get(uid, {}); var n = u.get("name", uid)
+	var u = _user_data_map.get(uid, {}); var n = _display_name(u, uid)
 	DisplayServer.file_dialog_show("Select file to send to " + n, "", "", false, DisplayServer.FILE_DIALOG_MODE_OPEN_FILE, [], func(ok, files, _f):
 		if ok and files.size() > 0 and _messaging:
 			var path = files[0]; var fa = FileAccess.open(path, FileAccess.READ)
@@ -263,14 +275,14 @@ func _send_file_to(uid: String):
 	)
 
 func _show_info(uid: String):
-	var u = _user_data_map.get(uid, {}); var n = u.get("name", uid); var s = _user_status_map.get(uid, "chat")
+	var u = _user_data_map.get(uid, {}); var n = _display_name(u, uid); var s = _user_status_map.get(uid, "chat")
 	var a = u.get("address", "Unknown"); var v = u.get("version", "?")
 	var d = AcceptDialog.new(); d.title = n; d.dialog_text = "Status: " + _sn(s) + "\nAddress: " + a + "\nVersion: " + v + "\nID: " + uid; d.min_size = Vector2(300,140); d.ok_button_text = "Close"; add_child(d); d.popup_centered()
 
 func _select_user(uid: String):
 	if uid.is_empty() or uid == _selected_user_id: return
 	_selected_user_id = uid; no_chat_label.visible = false; chat_header.visible = true; input_panel.visible = true; message_input.grab_focus()
-	var u = _user_data_map.get(uid, {}); var n = u.get("name", "").strip_edges(); if n.is_empty(): n = uid
+	var u = _user_data_map.get(uid, {}); var n = _display_name(u, uid)
 	chat_user_name.text = n; var s = _user_status_map.get(uid, "chat"); chat_status_label.text = _sn(s); chat_status_label.add_theme_color_override("font_color", CLR_GREEN if s == "chat" else _sc(s))
 	var st = StyleBoxFlat.new(); st.bg_color = _gc(n); st.set_corner_radius_all(AVATAR_SIZE/2); st.corner_detail = 6; chat_avatar.add_theme_stylebox_override("panel", st)
 	for u2 in _user_item_map: var it = _user_item_map[u2]; var ia = u2 == uid; var ast = StyleBoxFlat.new(); ast.bg_color = CLR_ACTIVE if ia else Color.TRANSPARENT; ast.set_corner_radius_all(0); it.add_theme_stylebox_override("normal", ast); it.add_theme_stylebox_override("hover", ast)
@@ -280,7 +292,7 @@ func _select_user(uid: String):
 
 func _on_search_changed(t: String):
 	_search_text = t.strip_edges()
-	for uid in _user_item_map: var it = _user_item_map[uid]; var u = _user_data_map.get(uid, {}); var n = u.get("name", "").strip_edges(); if n.is_empty(): n = uid; it.visible = true if _search_text.is_empty() else n.to_lower().contains(_search_text.to_lower())
+	for uid in _user_item_map: var it = _user_item_map[uid]; var u = _user_data_map.get(uid, {}); var n = _display_name(u, uid); it.visible = true if _search_text.is_empty() else n.to_lower().contains(_search_text.to_lower())
 
 func _on_send_pressed():
 	var text = message_input.text.strip_edges()
