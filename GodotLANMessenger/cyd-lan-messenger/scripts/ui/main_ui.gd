@@ -1,6 +1,7 @@
 extends Control
 const _D = preload("res://scripts/network/definitions.gd")
 const _LanMessenger = preload("res://scripts/network/lan_messenger.gd")
+const ChatBubbleScene = preload("res://SubScenes/ChatBubbles.tscn")
 
 const APP_TITLE := "CydLAN Messenger"
 const TRAY_MENU_SHOW := 1; const TRAY_MENU_QUIT := 2
@@ -14,8 +15,6 @@ const ST_CODES := ["chat","busy","dnd","brb","away","gone"]
 const SMILEYS := {":)":"😊",":D":"😄",":(":"😢",";)":"😉",":p":"😋",":P":"😋",":o":"😮",":O":"😮",":/":"😕",":|":"😐",":'(":"😢",":')":"😂","<3":"❤️","</3":"💔","^^":"😊",":*)":"😳","%-)":"🤔","B)":"😎","8)":"😎",":-?":"🤔"}
 const AVATAR_SIZE := 28; const HIST_FILE := "user://chat_history.json"
 const CHAT_BUBBLE_MAX_WIDTH_RATIO := 0.75
-const CHAT_BUBBLE_MIN_WIDTH := 78.0
-const CHAT_BUBBLE_TEXT_PADDING := 34.0
 
 @onready var title_bar: Panel = %TitleBar
 @onready var minimize_btn: Button = %MinimizeBtn; @onready var maximize_btn: Button = %MaximizeBtn; @onready var close_btn: Button = %CloseBtn
@@ -310,32 +309,14 @@ func _add_bubble(text: String, is_sent: bool, sender: String = "", ts: String = 
 	if ts.is_empty(): ts = Time.get_time_string_from_system(false)
 	var row = HBoxContainer.new(); row.size_flags_horizontal = Control.SIZE_EXPAND_FILL; row.size_flags_vertical = Control.SIZE_SHRINK_CENTER
 	row.add_theme_constant_override("separation", 0)
-	var bubble = Panel.new(); bubble.size_flags_vertical = Control.SIZE_SHRINK_CENTER
-	var bc = CLR_BUBBLE_SENT if is_sent else CLR_BUBBLE_RECV; var tc = Color.WHITE if is_sent else CLR_TEXT
-	var bs = StyleBoxFlat.new(); bs.bg_color = bc; var cr := 14
-	if is_sent: bs.set_corner_radius_all(cr); bs.corner_radius_top_right = 4
-	else: bs.set_corner_radius_all(cr); bs.corner_radius_top_left = 4
-	bs.corner_detail = 6; bs.content_margin_left = 12; bs.content_margin_right = 12; bs.content_margin_top = 8; bs.content_margin_bottom = 8
-	bubble.add_theme_stylebox_override("panel", bs); bubble.size_flags_horizontal = Control.SIZE_SHRINK_END
-	var content = VBoxContainer.new(); content.size_flags_horizontal = Control.SIZE_EXPAND_FILL; bubble.add_child(content)
-	if not is_sent and not sender.is_empty(): var nl = Label.new(); nl.text = sender; nl.add_theme_font_size_override("font_size", 10); nl.add_theme_color_override("font_color", CLR_PRIMARY); content.add_child(nl)
-	var ml = Label.new(); ml.text = text; ml.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART; ml.size_flags_horizontal = Control.SIZE_EXPAND_FILL; ml.add_theme_color_override("font_color", tc); ml.add_theme_font_size_override("font_size", 12)
-	ml.custom_minimum_size.x = _bubble_text_width(text)
-	content.add_child(ml)
-	var tl = Label.new(); tl.text = ts; tl.add_theme_font_size_override("font_size", 8); tl.add_theme_color_override("font_color", Color(1,1,1,0.58) if is_sent else Color(0.68,0.68,0.68,0.72)); tl.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT; content.add_child(tl)
+	var bubble = ChatBubbleScene.instantiate()
+	bubble.size_flags_horizontal = Control.SIZE_SHRINK_END
+	bubble.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+	bubble.configure(text, is_sent, ts, message_scroll.size.x * CHAT_BUBBLE_MAX_WIDTH_RATIO)
 	if is_sent: var sp = Control.new(); sp.size_flags_horizontal = Control.SIZE_EXPAND_FILL; row.add_child(sp)
 	row.add_child(bubble)
 	if not is_sent: var sp = Control.new(); sp.size_flags_horizontal = Control.SIZE_EXPAND_FILL; row.add_child(sp)
 	message_vbox.add_child(row); _scroll_bottom()
-
-func _bubble_text_width(text: String) -> float:
-	var max_width = max(120.0, message_scroll.size.x * CHAT_BUBBLE_MAX_WIDTH_RATIO - CHAT_BUBBLE_TEXT_PADDING)
-	var font = get_theme_default_font()
-	var font_size = 12
-	var longest_line := 0.0
-	for line in text.split("\n"):
-		longest_line = max(longest_line, font.get_string_size(line, HORIZONTAL_ALIGNMENT_LEFT, -1, font_size).x)
-	return clamp(longest_line + 2.0, CHAT_BUBBLE_MIN_WIDTH, max_width)
 
 func _add_to_history(uid: String, text: String, is_sent: bool, sender: String, ts: String):
 	if not _message_history.has(uid): _message_history[uid] = []
