@@ -332,6 +332,8 @@ theme_override_font_sizes/font_size = 12
 theme_override_styles/normal = SubResource("StyleBoxEmpty_a8y0u")
 theme_override_styles/focus = SubResource("StyleBoxEmpty_a8y0u")
 placeholder_text = "Aa"
+wrap_mode = 1
+scroll_smooth = true
 caret_blink = true
 
 [node name="SendButton" type="Button" parent="Background/VBoxContainer/BodyHBox/ChatView/VBoxContainer/InputPanel/InputHBox" unique_id=1371442481]

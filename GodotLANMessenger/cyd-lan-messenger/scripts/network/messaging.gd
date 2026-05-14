@@ -7,6 +7,7 @@ signal message_received(type, user_id, user_name, body)
 signal user_status_changed(user_id, status)
 signal user_typing(user_id, user_name, state)
 signal connection_state_changed
+signal user_avatar_changed(user_id)
 
 var local_user: Dictionary = {}
 var user_list: Array = []
@@ -19,6 +20,7 @@ var _received_list: Array = []
 var _pending_list: Array = []
 var _file_list: Array = []
 var _folder_list: Array = []
+var _avatar_send_map: Dictionary = {}
 var _loopback: bool = false
 var _user_group_map: Dictionary = {}
 var _started: bool = false
@@ -206,6 +208,9 @@ func _process_message(msg_type: int, pHeader) -> void:
 			var ftype_str = pMessage.data(_D.XN_FILETYPE)
 			var mode_str = pMessage.data(_D.XN_MODE)
 			var op_str = pMessage.data(_D.XN_FILEOP)
+			if ftype_str == _D.FileTypeNames[_D.FileType.FT_Avatar]:
+				_process_avatar_file(uid, pMessage, fid, mode_str, op_str)
+				return
 			message_received.emit(msg_type, uid, name, op_str)
 		_D.MessageType.MT_UserData:
 			var qop = pMessage.data(_D.XN_QUERYOP)
@@ -258,8 +263,73 @@ func _process_user_data_result(peer_id: String, pMessage: XmlMessage) -> void:
 			"address": address,
 			"status": pMessage.data(_D.XN_STATUS)
 		})
+	_send_avatar_init(user_id)
 
 # -- Internal: File handling --
+
+func _send_avatar_init(user_id: String) -> void:
+	var path = _local_avatar_path()
+	if path.is_empty() or not FileAccess.file_exists(path):
+		return
+	var file = FileAccess.open(path, FileAccess.READ)
+	if not file:
+		return
+	var size = file.get_length()
+	file.close()
+	var fid = (str(Time.get_unix_time_from_system()) + _local_id() + user_id).md5_text()
+	var msg = XmlMessage.new()
+	msg.add_data(_D.XN_FILEID, fid)
+	msg.add_data(_D.XN_FILEPATH, path)
+	msg.add_data(_D.XN_FILENAME, path.get_file())
+	msg.add_data(_D.XN_FILESIZE, str(size))
+	msg.add_data(_D.XN_FILETYPE, _D.FileTypeNames[_D.FileType.FT_Avatar])
+	msg.add_data(_D.XN_MODE, _D.FileModeNames[_D.FileMode.FM_Send])
+	msg.add_data(_D.XN_FILEOP, _D.FileOpNames[_D.FileOp.FO_Init])
+	_avatar_send_map[fid] = msg
+	_msg_id += 1
+	_prepare_message(_D.MessageType.MT_File, _msg_id, false, user_id, msg)
+
+func _process_avatar_file(user_id: String, msg: XmlMessage, fid: String, mode: String, op: String) -> void:
+	if op == _D.FileOpNames[_D.FileOp.FO_Init]:
+		var path = _avatar_cache_path(user_id)
+		var receive_msg = msg.clone()
+		receive_msg.remove_data(_D.XN_FILEPATH)
+		receive_msg.add_data(_D.XN_FILEPATH, path)
+		network.init_receive_file(user_id, msg.header(_D.XN_ADDRESS), receive_msg.get_xml())
+		var reply = XmlMessage.new()
+		reply.add_data(_D.XN_FILEID, fid)
+		reply.add_data(_D.XN_FILETYPE, _D.FileTypeNames[_D.FileType.FT_Avatar])
+		reply.add_data(_D.XN_MODE, _D.FileModeNames[_D.FileMode.FM_Receive])
+		reply.add_data(_D.XN_FILEOP, _D.FileOpNames[_D.FileOp.FO_Accept])
+		_msg_id += 1
+		_prepare_message(_D.MessageType.MT_File, _msg_id, false, user_id, reply)
+	elif op == _D.FileOpNames[_D.FileOp.FO_Accept]:
+		var send_msg: XmlMessage = _avatar_send_map.get(fid, null)
+		if send_msg:
+			network.init_send_file(user_id, get_user(user_id).get("address", ""), send_msg.get_xml())
+	elif op == _D.FileOpNames[_D.FileOp.FO_Complete]:
+		_avatar_send_map.erase(fid)
+		if mode == _D.FileModeNames[_D.FileMode.FM_Receive]:
+			user_avatar_changed.emit(user_id)
+
+func _avatar_cache_path(user_id: String) -> String:
+	return "user://cache/avt_" + user_id + ".png"
+
+func _local_avatar_path() -> String:
+	var avatar_id = int(local_user.get("avatar", 0))
+	var candidates: Array[String] = [
+		"user://avt_local.png",
+		"res://Assets/Avatars/avatar_" + str(avatar_id) + ".png"
+	]
+	if OS.get_name() == "Windows":
+		var local_app_data = OS.get_environment("LOCALAPPDATA")
+		if not local_app_data.is_empty():
+			candidates.append(local_app_data.path_join("LAN Messenger").path_join("LAN Messenger").path_join("avt_local.png"))
+	candidates.append("res://Assets/Avatars/avatar_default.png")
+	for path in candidates:
+		if FileAccess.file_exists(path):
+			return path
+	return ""
 
 func _prepare_file(type: int, msg_id: int, retry: bool, user_id: String, pMessage: XmlMessage) -> void:
 	var user = get_user(user_id)
@@ -359,6 +429,9 @@ func _receive_progress(user_id: String, data: String) -> void:
 	var uid = msg.header(_D.XN_FROM)
 	var user = get_user(uid)
 	var name = user.get("name", uid)
+	if msg.data(_D.XN_FILETYPE) == _D.FileTypeNames[_D.FileType.FT_Avatar]:
+		_process_avatar_file(uid, msg, msg.data(_D.XN_FILEID), msg.data(_D.XN_MODE), msg.data(_D.XN_FILEOP))
+		return
 	message_received.emit(_D.MessageType.MT_File, uid, name, msg.get_xml())
 
 func _receive_web_message(data: String) -> void:

@@ -27,7 +27,7 @@ const SENT_ECHO_IGNORE_SECONDS := 3.0
 @onready var chat_status_label: Label = %ChatStatus; @onready var chat_avatar: ColorRect = %ChatAvatar
 @onready var no_chat_label: Label = %NoChatLabel
 
-var _user_item_map: Dictionary = {}; var _user_data_map: Dictionary = {}; var _user_avatar_colors: Dictionary = {}
+var _user_item_map: Dictionary = {}; var _user_data_map: Dictionary = {}; var _user_avatar_colors: Dictionary = {}; var _user_avatar_rect_map: Dictionary = {}
 var _user_dot_map: Dictionary = {}; var _user_status_map: Dictionary = {}; var _sent_recently: Dictionary = {}
 var _messaging: Node = null; var _net_started: bool = false; var _status_indicator: StatusIndicator = null
 var _tray_menu: PopupMenu = null; var _allow_quit: bool = false; var _hidden_to_tray: bool = false
@@ -184,6 +184,52 @@ func _display_name(user: Dictionary, uid: String = "") -> String:
 func _is_hex_prefix_char(value: String) -> bool:
 	return value.is_valid_int() or value in ["A", "B", "C", "D", "E", "F", "a", "b", "c", "d", "e", "f"]
 
+func _apply_avatar(target: ColorRect, uid: String, fallback_name: String) -> void:
+	var user = _user_data_map.get(uid, {})
+	target.color = _gc(fallback_name)
+	var style = StyleBoxFlat.new()
+	style.bg_color = target.color
+	style.set_corner_radius_all(AVATAR_SIZE / 2)
+	style.corner_detail = 6
+	target.add_theme_stylebox_override("panel", style)
+	var texture_rect = target.get_node_or_null("AvatarTexture") as TextureRect
+	if not texture_rect:
+		texture_rect = TextureRect.new()
+		texture_rect.name = "AvatarTexture"
+		texture_rect.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		texture_rect.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+		texture_rect.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_COVERED
+		texture_rect.set_anchors_preset(Control.PRESET_FULL_RECT)
+		target.add_child(texture_rect)
+	var texture = _load_avatar_texture(uid, int(user.get("avatar", 0)))
+	texture_rect.texture = texture
+	texture_rect.visible = texture != null
+	if texture:
+		target.color = Color.TRANSPARENT
+		style.bg_color = Color.TRANSPARENT
+		target.add_theme_stylebox_override("panel", style)
+
+func _load_avatar_texture(uid: String, avatar_id: int = 0) -> Texture2D:
+	for path in _avatar_paths(uid, avatar_id):
+		if FileAccess.file_exists(path):
+			var image = Image.new()
+			if image.load(path) == OK:
+				return ImageTexture.create_from_image(image)
+	return null
+
+func _avatar_paths(uid: String, avatar_id: int = 0) -> Array[String]:
+	var paths: Array[String] = [
+		"user://cache/avt_" + uid + ".png",
+		"res://Assets/Avatars/avatar_" + str(avatar_id) + ".png"
+	]
+	if OS.get_name() == "Windows":
+		var local_app_data = OS.get_environment("LOCALAPPDATA")
+		if not local_app_data.is_empty():
+			var original_dir = local_app_data.path_join("LAN Messenger").path_join("LAN Messenger")
+			paths.append(original_dir.path_join("cache").path_join("avt_" + uid + ".png"))
+	paths.append("res://Assets/Avatars/avatar_default.png")
+	return paths
+
 func _on_refresh_button_pressed():
 	if not _net_started: _net_start()
 	elif _messaging: _messaging.refresh()
@@ -195,6 +241,7 @@ func _net_start():
 	_messaging.user_added.connect(_on_user_added); _messaging.user_removed.connect(_on_user_removed)
 	_messaging.message_received.connect(_on_message_received)
 	_messaging.user_status_changed.connect(_on_user_status_changed); _messaging.user_typing.connect(_on_user_typing)
+	if _messaging.has_signal("user_avatar_changed"): _messaging.user_avatar_changed.connect(_on_user_avatar_changed)
 	_sync_existing_users()
 
 func _sync_existing_users(): if _messaging: for u in _messaging.user_list: _on_user_added(u)
@@ -209,8 +256,16 @@ func _on_user_added(user: Dictionary):
 func _on_user_removed(user_id: String):
 	if _user_item_map.has(user_id):
 		var item = _user_item_map[user_id]; user_vbox.remove_child(item); item.queue_free()
-		_user_item_map.erase(user_id); _user_data_map.erase(user_id); _user_dot_map.erase(user_id)
+		_user_item_map.erase(user_id); _user_data_map.erase(user_id); _user_dot_map.erase(user_id); _user_avatar_rect_map.erase(user_id)
 	if _selected_user_id == user_id: _selected_user_id = ""; no_chat_label.visible = true; chat_header.visible = false; input_panel.visible = false
+
+func _on_user_avatar_changed(user_id: String) -> void:
+	if _user_avatar_rect_map.has(user_id):
+		var user = _user_data_map.get(user_id, {})
+		_apply_avatar(_user_avatar_rect_map[user_id], user_id, _display_name(user, user_id))
+	if user_id == _selected_user_id:
+		var user = _user_data_map.get(user_id, {})
+		_apply_avatar(chat_avatar, user_id, _display_name(user, user_id))
 
 func _on_user_status_changed(user_id: String, status: String):
 	_user_status_map[user_id] = status
@@ -238,6 +293,7 @@ func _create_user_item(uid: String, name: String) -> Button:
 	var av = ColorRect.new(); av.custom_minimum_size = Vector2(AVATAR_SIZE, AVATAR_SIZE); var ac = _gc(name)
 	var as_ = StyleBoxFlat.new(); as_.bg_color = ac; as_.set_corner_radius_all(AVATAR_SIZE/2); as_.corner_detail = 6
 	av.add_theme_stylebox_override("panel", as_); av.mouse_filter = Control.MOUSE_FILTER_PASS; avc.add_child(av); av.position = Vector2(6,8)
+	_user_avatar_rect_map[uid] = av; _apply_avatar(av, uid, name)
 	var dot = ColorRect.new(); dot.custom_minimum_size = Vector2(9,9)
 	var ds = StyleBoxFlat.new(); ds.bg_color = CLR_GREEN; ds.set_corner_radius_all(5); ds.corner_detail = 4; ds.border_width_left = 2; ds.border_width_right = 2; ds.border_width_top = 2; ds.border_width_bottom = 2; ds.border_color = Color(0.039, 0.039, 0.039, 1)
 	dot.add_theme_stylebox_override("panel", ds); dot.mouse_filter = Control.MOUSE_FILTER_PASS; dot.position = Vector2(24,26); avc.add_child(dot); _user_dot_map[uid] = dot
@@ -284,7 +340,7 @@ func _select_user(uid: String):
 	_selected_user_id = uid; no_chat_label.visible = false; chat_header.visible = true; input_panel.visible = true; message_input.grab_focus()
 	var u = _user_data_map.get(uid, {}); var n = _display_name(u, uid)
 	chat_user_name.text = n; var s = _user_status_map.get(uid, "chat"); chat_status_label.text = _sn(s); chat_status_label.add_theme_color_override("font_color", CLR_GREEN if s == "chat" else _sc(s))
-	var st = StyleBoxFlat.new(); st.bg_color = _gc(n); st.set_corner_radius_all(AVATAR_SIZE/2); st.corner_detail = 6; chat_avatar.add_theme_stylebox_override("panel", st)
+	_apply_avatar(chat_avatar, uid, n)
 	for u2 in _user_item_map: var it = _user_item_map[u2]; var ia = u2 == uid; var ast = StyleBoxFlat.new(); ast.bg_color = CLR_ACTIVE if ia else Color.TRANSPARENT; ast.set_corner_radius_all(0); it.add_theme_stylebox_override("normal", ast); it.add_theme_stylebox_override("hover", ast)
 	for c in message_vbox.get_children(): c.queue_free()
 	if _message_history.has(uid): for e in _message_history[uid]: _add_bubble(e.text, e.is_sent, e.sender, e.time)

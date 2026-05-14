@@ -15,6 +15,7 @@ func _ready():
 
 	var address = _get_ip_address()
 	var user_id = _make_user_id(address)
+	var avatar = _get_configured_avatar()
 
 	messaging.local_user = {
 		"id": user_id,
@@ -22,7 +23,7 @@ func _ready():
 		"address": address,
 		"version": "1.2.39",
 		"status": "chat",
-		"avatar": 0,
+		"avatar": avatar,
 		"group": "General",
 		"note": "",
 		"caps": _D.UserCap.UC_File | _D.UserCap.UC_Folder
@@ -103,3 +104,27 @@ func _get_ip_address() -> String:
 
 func _make_user_id(address: String) -> String:
 	return address.replace(".", "") + Helper.get_logon_name()
+
+func _get_configured_avatar() -> int:
+	for path in _avatar_config_paths():
+		if not FileAccess.file_exists(path):
+			continue
+		var file = FileAccess.open(path, FileAccess.READ)
+		if not file:
+			continue
+		while not file.eof_reached():
+			var line = file.get_line().strip_edges()
+			if line.begins_with("Avatar="):
+				var value = line.trim_prefix("Avatar=").strip_edges()
+				file.close()
+				return int(value) if value.is_valid_int() else 0
+		file.close()
+	return 0
+
+func _avatar_config_paths() -> Array[String]:
+	var paths: Array[String] = ["user://LAN Messenger.ini"]
+	if OS.get_name() == "Windows":
+		var app_data = OS.get_environment("APPDATA")
+		if not app_data.is_empty():
+			paths.append(app_data.path_join("LAN Messenger").path_join("LAN Messenger.ini"))
+	return paths
