@@ -4,6 +4,8 @@ const _D = preload("res://scripts/network/definitions.gd")
 signal user_added(user)
 signal user_removed(user_id)
 signal message_received(type, user_id, user_name, body)
+signal user_status_changed(user_id, status)
+signal user_typing(user_id, user_name, state)
 signal connection_state_changed
 
 var local_user: Dictionary = {}
@@ -189,13 +191,16 @@ func _process_message(msg_type: int, pHeader) -> void:
 			var body = pMessage.data(_D.XN_MESSAGE)
 			message_received.emit(msg_type, uid, name, body)
 		_D.MessageType.MT_Status:
-			_update_user(uid, "status", pMessage.data(_D.XN_STATUS))
+			var new_status = pMessage.data(_D.XN_STATUS)
+			_update_user(uid, "status", new_status)
+			user_status_changed.emit(uid, new_status)
 		_D.MessageType.MT_UserName:
 			_update_user(uid, "name", pMessage.data(_D.XN_NAME))
 		_D.MessageType.MT_Note:
 			_update_user(uid, "note", pMessage.data(_D.XN_NOTE))
 		_D.MessageType.MT_ChatState:
-			message_received.emit(msg_type, uid, name, pMessage.data(_D.XN_CHATSTATE))
+			var state = pMessage.data(_D.XN_CHATSTATE)
+			user_typing.emit(uid, name, state)
 		_D.MessageType.MT_File, _D.MessageType.MT_Folder:
 			var fid = pMessage.data(_D.XN_FILEID)
 			var ftype_str = pMessage.data(_D.XN_FILETYPE)

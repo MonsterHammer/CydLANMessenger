@@ -5,16 +5,16 @@
 [ext_resource type="Texture2D" uid="uid://bqdrgyrkfi18b" path="res://Assets/NavIcons/Subtract.png" id="3_min"]
 [ext_resource type="Texture2D" uid="uid://bxjm8atj70r0k" path="res://Assets/NavIcons/Stop.png" id="4_max"]
 [ext_resource type="Texture2D" uid="uid://b07jvrvolk7ri" path="res://Assets/NavIcons/Close.png" id="5_close"]
-[ext_resource type="StyleBox" path="res://Assets/Themes/bg.tres" id="7_bg"]
-[ext_resource type="StyleBox" path="res://Assets/Themes/title_bar.tres" id="8_title"]
-[ext_resource type="StyleBox" path="res://Assets/Themes/sidebar.tres" id="9_sidebar"]
-[ext_resource type="StyleBox" path="res://Assets/Themes/chat_view.tres" id="10_chat_view"]
-[ext_resource type="StyleBox" path="res://Assets/Themes/chat_bg.tres" id="11_chat_bg"]
-[ext_resource type="StyleBox" path="res://Assets/Themes/chat_header.tres" id="12_chat_header"]
-[ext_resource type="StyleBox" path="res://Assets/Themes/input_panel.tres" id="13_input"]
-[ext_resource type="StyleBox" path="res://Assets/Themes/search_bg.tres" id="14_search"]
-[ext_resource type="StyleBox" path="res://Assets/Themes/msg_input.tres" id="15_msg_input"]
-[ext_resource type="StyleBox" path="res://Assets/Themes/scroll_bg.tres" id="16_scroll"]
+[ext_resource type="StyleBox" uid="uid://dky6vjijlwsfq" path="res://Assets/Themes/bg.tres" id="7_bg"]
+[ext_resource type="StyleBox" uid="uid://cnub4id3bv36b" path="res://Assets/Themes/title_bar.tres" id="8_title"]
+[ext_resource type="StyleBox" uid="uid://bcibmwd3y5rvm" path="res://Assets/Themes/sidebar.tres" id="9_sidebar"]
+[ext_resource type="StyleBox" uid="uid://djngwwobyf8b3" path="res://Assets/Themes/chat_view.tres" id="10_chat_view"]
+[ext_resource type="StyleBox" uid="uid://d0iaixudux3dq" path="res://Assets/Themes/chat_bg.tres" id="11_chat_bg"]
+[ext_resource type="StyleBox" uid="uid://cqfvb6wj6vwk5" path="res://Assets/Themes/chat_header.tres" id="12_chat_header"]
+[ext_resource type="StyleBox" uid="uid://d32vp5he3j1gk" path="res://Assets/Themes/input_panel.tres" id="13_input"]
+[ext_resource type="StyleBox" uid="uid://cw25p4lhoulua" path="res://Assets/Themes/search_bg.tres" id="14_search"]
+[ext_resource type="StyleBox" uid="uid://e5b25tvee51n" path="res://Assets/Themes/msg_input.tres" id="15_msg_input"]
+[ext_resource type="StyleBox" uid="uid://cvv81f7ayrsfj" path="res://Assets/Themes/scroll_bg.tres" id="16_scroll"]
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_jkv2x"]
 bg_color = Color(0.07450981, 0.07450981, 0.07450981, 1)
@@ -171,11 +171,12 @@ size_flags_vertical = 3
 theme_override_styles/panel = ExtResource("9_sidebar")
 
 [node name="SidebarVBox" type="VBoxContainer" parent="Background/VBoxContainer/BodyHBox/LeftSidebar" unique_id=1060024064]
-layout_mode = 0
+layout_mode = 1
+anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
-grow_horizontal = 2
-grow_vertical = 2
+offset_left = 1.0
+offset_right = 1.0
 theme_override_constants/separation = 0
 
 [node name="SearchHBox" type="HBoxContainer" parent="Background/VBoxContainer/BodyHBox/LeftSidebar/SidebarVBox" unique_id=435725086]
@@ -191,7 +192,7 @@ layout_mode = 2
 size_flags_horizontal = 3
 size_flags_vertical = 4
 theme_override_colors/font_color = Color(0.88, 0.88, 0.88, 1)
-theme_override_colors/caret_color = Color(0, 0.518, 1, 1)
+theme_override_colors/caret_color = Color(0.98, 0.698, 0.514, 1)
 theme_override_font_sizes/font_size = 12
 theme_override_styles/normal = ExtResource("14_search")
 theme_override_styles/focus = ExtResource("14_search")
@@ -204,8 +205,8 @@ custom_minimum_size = Vector2(28, 28)
 layout_mode = 2
 size_flags_horizontal = 0
 size_flags_vertical = 4
-flat = true
 text = "↻"
+flat = true
 
 [node name="UserScroll" type="ScrollContainer" parent="Background/VBoxContainer/BodyHBox/LeftSidebar/SidebarVBox" unique_id=2098617750]
 layout_mode = 2
@@ -217,24 +218,27 @@ theme_override_styles/panel = ExtResource("16_scroll")
 unique_name_in_owner = true
 layout_mode = 2
 size_flags_horizontal = 3
+size_flags_vertical = 3
 
-[node name="ChatView" type="Panel" parent="Background/VBoxContainer/BodyHBox" unique_id=707542163]
+[node name="ChatView" type="PanelContainer" parent="Background/VBoxContainer/BodyHBox" unique_id=1060795094]
 unique_name_in_owner = true
 layout_mode = 2
 size_flags_horizontal = 3
 size_flags_vertical = 3
 theme_override_styles/panel = ExtResource("10_chat_view")
 
-[node name="ChatHeader" type="Panel" parent="Background/VBoxContainer/BodyHBox/ChatView" unique_id=1621116305]
+[node name="VBoxContainer" type="VBoxContainer" parent="Background/VBoxContainer/BodyHBox/ChatView" unique_id=894068008]
+layout_mode = 2
+
+[node name="ChatHeader" type="Panel" parent="Background/VBoxContainer/BodyHBox/ChatView/VBoxContainer" unique_id=1621116305]
 unique_name_in_owner = true
-layout_mode = 0
-anchor_right = 1.0
-offset_bottom = 36.0
-grow_vertical = 0
+custom_minimum_size = Vector2(35, 50)
+layout_mode = 2
+size_flags_vertical = 0
 mouse_filter = 1
 theme_override_styles/panel = ExtResource("12_chat_header")
 
-[node name="ChatHeaderHBox" type="HBoxContainer" parent="Background/VBoxContainer/BodyHBox/ChatView/ChatHeader" unique_id=127854335]
+[node name="ChatHeaderHBox" type="HBoxContainer" parent="Background/VBoxContainer/BodyHBox/ChatView/VBoxContainer/ChatHeader" unique_id=127854335]
 layout_mode = 0
 anchor_right = 1.0
 anchor_bottom = 1.0
@@ -242,7 +246,7 @@ grow_horizontal = 2
 grow_vertical = 2
 theme_override_constants/separation = 8
 
-[node name="ChatAvatar" type="ColorRect" parent="Background/VBoxContainer/BodyHBox/ChatView/ChatHeader/ChatHeaderHBox" unique_id=1958040170]
+[node name="ChatAvatar" type="ColorRect" parent="Background/VBoxContainer/BodyHBox/ChatView/VBoxContainer/ChatHeader/ChatHeaderHBox" unique_id=1958040170]
 unique_name_in_owner = true
 custom_minimum_size = Vector2(28, 28)
 layout_mode = 2
@@ -251,72 +255,58 @@ size_flags_vertical = 4
 mouse_filter = 1
 color = Color(0.8, 0.8, 0.8, 1)
 
-[node name="ChatNameVBox" type="VBoxContainer" parent="Background/VBoxContainer/BodyHBox/ChatView/ChatHeader/ChatHeaderHBox" unique_id=1098769899]
+[node name="ChatNameVBox" type="VBoxContainer" parent="Background/VBoxContainer/BodyHBox/ChatView/VBoxContainer/ChatHeader/ChatHeaderHBox" unique_id=1098769899]
 layout_mode = 2
 size_flags_horizontal = 3
 size_flags_vertical = 4
 
-[node name="ChatUserName" type="Label" parent="Background/VBoxContainer/BodyHBox/ChatView/ChatHeader/ChatHeaderHBox/ChatNameVBox" unique_id=1354653172]
+[node name="ChatUserName" type="Label" parent="Background/VBoxContainer/BodyHBox/ChatView/VBoxContainer/ChatHeader/ChatHeaderHBox/ChatNameVBox" unique_id=1354653172]
 unique_name_in_owner = true
 layout_mode = 2
 theme_override_colors/font_color = Color(0.88, 0.88, 0.88, 1)
 theme_override_font_sizes/font_size = 13
 text = "Select a user"
 
-[node name="ChatStatus" type="Label" parent="Background/VBoxContainer/BodyHBox/ChatView/ChatHeader/ChatHeaderHBox/ChatNameVBox" unique_id=851637628]
+[node name="ChatStatus" type="Label" parent="Background/VBoxContainer/BodyHBox/ChatView/VBoxContainer/ChatHeader/ChatHeaderHBox/ChatNameVBox" unique_id=851637628]
 unique_name_in_owner = true
 layout_mode = 2
-theme_override_colors/font_color = Color(0.192, 0.635, 0.298, 1)
+theme_override_colors/font_color = Color(0.498, 0.847, 0.561, 1)
 theme_override_font_sizes/font_size = 10
 
-[node name="ChatHeaderSpacer" type="Control" parent="Background/VBoxContainer/BodyHBox/ChatView/ChatHeader/ChatHeaderHBox" unique_id=1101729271]
+[node name="ChatHeaderSpacer" type="Control" parent="Background/VBoxContainer/BodyHBox/ChatView/VBoxContainer/ChatHeader/ChatHeaderHBox" unique_id=1101729271]
 layout_mode = 2
 size_flags_horizontal = 3
 size_flags_vertical = 4
 mouse_filter = 1
 
-[node name="MessageScroll" type="ScrollContainer" parent="Background/VBoxContainer/BodyHBox/ChatView" unique_id=1586117566]
+[node name="MessageScroll" type="ScrollContainer" parent="Background/VBoxContainer/BodyHBox/ChatView/VBoxContainer" unique_id=1586117566]
 unique_name_in_owner = true
-layout_mode = 0
-anchor_right = 1.0
-anchor_bottom = 1.0
-offset_top = 36.0
-offset_bottom = 40.0
+layout_mode = 2
+size_flags_vertical = 3
 theme_override_styles/panel = ExtResource("16_scroll")
 
-[node name="MessageVBox" type="VBoxContainer" parent="Background/VBoxContainer/BodyHBox/ChatView/MessageScroll" unique_id=1204050868]
+[node name="MessageVBox" type="VBoxContainer" parent="Background/VBoxContainer/BodyHBox/ChatView/VBoxContainer/MessageScroll" unique_id=1204050868]
 unique_name_in_owner = true
 layout_mode = 2
 size_flags_horizontal = 3
 size_flags_vertical = 3
 
-[node name="NoChatLabel" type="Label" parent="Background/VBoxContainer/BodyHBox/ChatView" unique_id=1562454001]
+[node name="NoChatLabel" type="Label" parent="Background/VBoxContainer/BodyHBox/ChatView/VBoxContainer" unique_id=1562454001]
 unique_name_in_owner = true
-layout_mode = 0
-anchor_left = 0.5
-anchor_top = 0.5
-anchor_right = 0.5
-anchor_bottom = 0.5
-offset_left = -100.0
-offset_top = -16.0
-offset_right = 100.0
-offset_bottom = 16.0
-theme_override_colors/font_color = Color(0.5, 0.5, 0.53, 1)
+layout_mode = 2
+theme_override_colors/font_color = Color(0.416, 0.416, 0.416, 1)
 theme_override_font_sizes/font_size = 13
 text = "Select a conversation"
 horizontal_alignment = 1
 vertical_alignment = 1
 
-[node name="InputPanel" type="Panel" parent="Background/VBoxContainer/BodyHBox/ChatView" unique_id=1953296017]
+[node name="InputPanel" type="Panel" parent="Background/VBoxContainer/BodyHBox/ChatView/VBoxContainer" unique_id=1953296017]
 unique_name_in_owner = true
-layout_mode = 0
-anchor_top = 1.0
-anchor_right = 1.0
-anchor_bottom = 1.0
-offset_top = -40.0
+custom_minimum_size = Vector2(0, 70)
+layout_mode = 2
 theme_override_styles/panel = ExtResource("13_input")
 
-[node name="InputHBox" type="HBoxContainer" parent="Background/VBoxContainer/BodyHBox/ChatView/InputPanel" unique_id=726815535]
+[node name="InputHBox" type="HBoxContainer" parent="Background/VBoxContainer/BodyHBox/ChatView/VBoxContainer/InputPanel" unique_id=726815535]
 layout_mode = 0
 anchor_right = 1.0
 anchor_bottom = 1.0
@@ -324,11 +314,10 @@ grow_horizontal = 2
 grow_vertical = 2
 theme_override_constants/separation = 4
 
-[node name="MessageInput" type="TextEdit" parent="Background/VBoxContainer/BodyHBox/ChatView/InputPanel/InputHBox" unique_id=2011380934]
+[node name="MessageInput" type="TextEdit" parent="Background/VBoxContainer/BodyHBox/ChatView/VBoxContainer/InputPanel/InputHBox" unique_id=2011380934]
 unique_name_in_owner = true
 layout_mode = 2
 size_flags_horizontal = 3
-size_flags_vertical = 4
 theme_override_colors/caret_color = Color(0, 0.518, 1, 1)
 theme_override_colors/font_color = Color(0.88, 0.88, 0.88, 1)
 theme_override_font_sizes/font_size = 12
@@ -337,13 +326,13 @@ theme_override_styles/focus = ExtResource("15_msg_input")
 placeholder_text = "Aa"
 caret_blink = true
 
-[node name="SendButton" type="Button" parent="Background/VBoxContainer/BodyHBox/ChatView/InputPanel/InputHBox" unique_id=1371442481]
+[node name="SendButton" type="Button" parent="Background/VBoxContainer/BodyHBox/ChatView/VBoxContainer/InputPanel/InputHBox" unique_id=1371442481]
 unique_name_in_owner = true
 custom_minimum_size = Vector2(32, 28)
 layout_mode = 2
 size_flags_horizontal = 0
 size_flags_vertical = 4
-theme_override_colors/font_color = Color(0, 0.518, 1, 1)
+theme_override_colors/font_color = Color(0.98, 0.698, 0.514, 1)
 theme_override_font_sizes/font_size = 16
 text = "➤"
 flat = true
@@ -364,5 +353,5 @@ offset_right = 50.0
 offset_bottom = 28.0
 text = "↻"
 
-[connection signal="pressed" from="RefreshButton" to="." method="_on_refresh_button_pressed"]
 [connection signal="pressed" from="Background/VBoxContainer/BodyHBox/LeftSidebar/SidebarVBox/SearchHBox/SearchRefreshBtn" to="." method="_on_refresh_button_pressed"]
+[connection signal="pressed" from="RefreshButton" to="." method="_on_refresh_button_pressed"]
