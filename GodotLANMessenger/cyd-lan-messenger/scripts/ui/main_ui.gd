@@ -2,6 +2,10 @@ extends Control
 const _D = preload("res://scripts/network/definitions.gd")
 const _LanMessenger = preload("res://scripts/network/lan_messenger.gd")
 
+const APP_TITLE := "CydLANMessenger"
+const TRAY_MENU_SHOW := 1
+const TRAY_MENU_QUIT := 2
+
 @onready var user_list: ItemList = %UserItemList
 @onready var chat_log: RichTextLabel = %ChatLog
 @onready var message_input: TextEdit = %MessageInput
@@ -10,10 +14,108 @@ const _LanMessenger = preload("res://scripts/network/lan_messenger.gd")
 var _user_id_map: Dictionary = {}
 var _messaging: Node = null
 var _net_started: bool = false
+var _status_indicator: StatusIndicator = null
+var _tray_menu: PopupMenu = null
+var _allow_quit: bool = false
+var _hidden_to_tray: bool = false
+var _has_focus: bool = true
+var _unread_count: int = 0
 
 func _ready():
+	get_tree().set_auto_accept_quit(false)
+	DisplayServer.window_set_title(APP_TITLE)
 	send_btn.pressed.connect(_on_send_pressed)
 	chat_log.text = "CYD LAN Messenger started.\nClick Refresh to start."
+	_setup_tray()
+
+func _notification(what: int) -> void:
+	match what:
+		NOTIFICATION_WM_CLOSE_REQUEST:
+			if _allow_quit:
+				get_tree().quit()
+			else:
+				_hide_to_tray()
+		NOTIFICATION_APPLICATION_FOCUS_IN, NOTIFICATION_WM_WINDOW_FOCUS_IN:
+			_has_focus = true
+			_clear_unread()
+		NOTIFICATION_APPLICATION_FOCUS_OUT, NOTIFICATION_WM_WINDOW_FOCUS_OUT:
+			_has_focus = false
+
+func _setup_tray() -> void:
+	_tray_menu = PopupMenu.new()
+	_tray_menu.name = "TrayMenu"
+	_tray_menu.add_item("Show", TRAY_MENU_SHOW)
+	_tray_menu.add_separator()
+	_tray_menu.add_item("Quit", TRAY_MENU_QUIT)
+	_tray_menu.id_pressed.connect(_on_tray_menu_id_pressed)
+	add_child(_tray_menu)
+
+	_status_indicator = StatusIndicator.new()
+	_status_indicator.name = "TrayIndicator"
+	_status_indicator.tooltip = APP_TITLE
+	var icon = load("res://icon.svg")
+	if icon:
+		_status_indicator.icon = icon
+	_status_indicator.menu = NodePath("../TrayMenu")
+	_status_indicator.visible = true
+	_status_indicator.pressed.connect(_on_status_indicator_pressed)
+	add_child(_status_indicator)
+
+func _hide_to_tray() -> void:
+	_hidden_to_tray = true
+	DisplayServer.window_set_mode(DisplayServer.WINDOW_MODE_MINIMIZED)
+	_update_tray_tooltip()
+
+func _restore_from_tray() -> void:
+	_hidden_to_tray = false
+	DisplayServer.window_set_mode(DisplayServer.WINDOW_MODE_WINDOWED)
+	DisplayServer.window_move_to_foreground()
+	_clear_unread()
+
+func _show_minimized_for_unread() -> void:
+	if _hidden_to_tray:
+		_hidden_to_tray = false
+		DisplayServer.window_set_mode(DisplayServer.WINDOW_MODE_MINIMIZED)
+	DisplayServer.window_request_attention()
+
+func _on_status_indicator_pressed(mouse_button: int, mouse_position: Vector2i) -> void:
+	if mouse_button == MOUSE_BUTTON_LEFT:
+		_restore_from_tray()
+
+func _on_tray_menu_id_pressed(id: int) -> void:
+	match id:
+		TRAY_MENU_SHOW:
+			_restore_from_tray()
+		TRAY_MENU_QUIT:
+			_allow_quit = true
+			get_tree().quit()
+
+func _mark_unread(sender_name: String) -> void:
+	_unread_count += 1
+	_update_tray_tooltip(sender_name)
+	DisplayServer.window_set_title("[" + str(_unread_count) + "] " + APP_TITLE)
+	_show_minimized_for_unread()
+
+func _clear_unread() -> void:
+	if _unread_count == 0:
+		return
+	_unread_count = 0
+	DisplayServer.window_set_title(APP_TITLE)
+	_update_tray_tooltip()
+
+func _update_tray_tooltip(sender_name: String = "") -> void:
+	if not _status_indicator:
+		return
+	if _unread_count > 0:
+		var detail = " unread message"
+		if _unread_count != 1:
+			detail += "s"
+		if not sender_name.is_empty():
+			_status_indicator.tooltip = APP_TITLE + "\n" + str(_unread_count) + detail + "\nLatest: " + sender_name
+		else:
+			_status_indicator.tooltip = APP_TITLE + "\n" + str(_unread_count) + detail
+	else:
+		_status_indicator.tooltip = APP_TITLE
 
 func _on_refresh_button_pressed():
 	if not _net_started:
@@ -94,3 +196,5 @@ func _on_send_pressed():
 
 func _on_message_received(type: int, user_id: String, name: String, body: String):
 	chat_log.text += "\n" + name + ": " + body
+	if not _has_focus or _hidden_to_tray:
+		_mark_unread(name)
