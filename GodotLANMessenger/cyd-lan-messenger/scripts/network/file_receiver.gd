@@ -68,8 +68,8 @@ func _on_disconnected() -> void:
 func _on_ready_read() -> void:
 	if not _active: return
 	var result = _socket.get_data(BUFFER_SIZE)
-	if result["error"] != OK: return
-	var data = result["data"] as PackedByteArray
+	if result[0] != OK: return
+	var data = result[1] as PackedByteArray
 	if data.size() == 0: return
 	_file.store_buffer(data)
 	var unreceived = _file_size - _file.get_position()

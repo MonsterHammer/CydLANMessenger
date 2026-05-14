@@ -20,9 +20,12 @@ var _folder_list: Array = []
 var _loopback: bool = false
 var _user_group_map: Dictionary = {}
 var _started: bool = false
+var _announce_pending: bool = false
 
 func init_config(settings: Dictionary = {}) -> void:
 	_settings = settings
+	if network:
+		network.init_config(_settings)
 
 func start() -> void:
 	if not network: return
@@ -35,7 +38,12 @@ func start() -> void:
 	network.connection_state_changed.connect(_on_network_state_changed)
 	network.start()
 	_started = true
-	_send_announce()
+	_announce_pending = true
+
+func _process(delta):
+	if _announce_pending:
+		_announce_pending = false
+		_send_announce()
 
 func stop() -> void:
 	_started = false
@@ -65,6 +73,12 @@ func send_web_message(msg_type: int, pMessage: XmlMessage) -> void:
 	var mid = _msg_id
 	var sz = Message.add_header(msg_type, mid, _local_id(), "", pMessage)
 	network.send_web_message("", sz)
+
+func refresh() -> void:
+	if _started:
+		_send_announce()
+		for u in user_list:
+			send_message(_D.MessageType.MT_Ping, u["id"], XmlMessage.new())
 
 func settings_changed() -> void:
 	if network: network.settings_changed()
@@ -107,6 +121,7 @@ func _process_announce(pMessage: XmlMessage, address: String) -> void:
 	var user_id = pMessage.header(_D.XN_FROM)
 	if user_id.is_empty(): return
 	if user_id == _local_id(): return
+	print("CydLAN: Processing announce from ", user_id, " at ", address)
 
 	var user_name = pMessage.data(_D.XN_NAME)
 	var version = pMessage.data(_D.XN_VERSION)
@@ -116,9 +131,12 @@ func _process_announce(pMessage: XmlMessage, address: String) -> void:
 	var caps = pMessage.data(_D.XN_USERCAPS)
 	var group = pMessage.data(_D.XN_GROUP)
 
-	_add_user(user_id, version, address, user_name, status, avatar, note, caps, group)
-	user_added.emit({ "id": user_id, "name": user_name, "address": address, "status": status })
-	network.add_connection(user_id, address)
+	if user_name.is_empty():
+		user_name = user_id
+	var was_added = _add_user(user_id, version, address, user_name, status, avatar, note, caps, group)
+	if was_added:
+		user_added.emit({ "id": user_id, "name": user_name, "address": address, "status": status })
+	network.add_connection.call_deferred(user_id, address)
 
 func _process_depart(pMessage: XmlMessage) -> void:
 	var user_id = pMessage.header(_D.XN_FROM)
@@ -163,6 +181,7 @@ func _process_message(msg_type: int, pHeader) -> void:
 		_D.MessageType.MT_Message:
 			var body = pMessage.data(_D.XN_MESSAGE)
 			message_received.emit(msg_type, uid, name, body)
+			_send_acknowledge(uid, pHeader["id"])
 		_D.MessageType.MT_GroupMessage:
 			var body = pMessage.data(_D.XN_GROUPMESSAGE) if pMessage.data_exists(_D.XN_GROUPMESSAGE) else pMessage.data(_D.XN_MESSAGE)
 			message_received.emit(msg_type, uid, name, body)
@@ -189,14 +208,18 @@ func _process_message(msg_type: int, pHeader) -> void:
 				_prepare_message(_D.MessageType.MT_UserData, _msg_id + 1, false, uid, _build_user_data_reply())
 				_msg_id += 1
 			elif qop == _D.QueryOpNames[_D.QueryOp.QO_Result]:
-				var av = pMessage.data(_D.XN_AVATAR)
-				pMessage.remove_header(_D.XN_TIME)
-				message_received.emit(msg_type, uid, name, pMessage.get_xml())
+				_process_user_data_result(uid, pMessage)
+		_D.MessageType.MT_Ping:
+			_send_acknowledge(uid, pHeader["id"])
+		_D.MessageType.MT_Acknowledge:
+			_remove_pending_msg(int(pMessage.data(_D.XN_MESSAGEID)))
 
 func _build_user_data_reply() -> XmlMessage:
 	var msg = XmlMessage.new()
 	msg.add_header(_D.XN_TYPE, _D.MessageTypeNames[_D.MessageType.MT_UserData])
 	msg.add_data(_D.XN_QUERYOP, _D.QueryOpNames[_D.QueryOp.QO_Result])
+	msg.add_data(_D.XN_USERID, local_user.get("id", ""))
+	msg.add_data(_D.XN_ADDRESS, local_user.get("address", ""))
 	msg.add_data(_D.XN_NAME, local_user.get("name", ""))
 	msg.add_data(_D.XN_VERSION, local_user.get("version", ""))
 	msg.add_data(_D.XN_STATUS, local_user.get("status", ""))
@@ -204,6 +227,32 @@ func _build_user_data_reply() -> XmlMessage:
 	msg.add_data(_D.XN_NOTE, local_user.get("note", ""))
 	msg.add_data(_D.XN_USERCAPS, str(local_user.get("caps", 0)))
 	return msg
+
+func _process_user_data_result(peer_id: String, pMessage: XmlMessage) -> void:
+	var user_id = pMessage.data(_D.XN_USERID)
+	if user_id.is_empty():
+		user_id = peer_id
+	var user_name = pMessage.data(_D.XN_NAME)
+	if user_name.is_empty():
+		user_name = user_id
+	var address = pMessage.data(_D.XN_ADDRESS)
+	var was_added = _add_user(
+		user_id,
+		pMessage.data(_D.XN_VERSION),
+		address,
+		user_name,
+		pMessage.data(_D.XN_STATUS),
+		pMessage.data(_D.XN_AVATAR),
+		pMessage.data(_D.XN_NOTE),
+		pMessage.data(_D.XN_USERCAPS)
+	)
+	if was_added:
+		user_added.emit({
+			"id": user_id,
+			"name": user_name,
+			"address": address,
+			"status": pMessage.data(_D.XN_STATUS)
+		})
 
 # -- Internal: File handling --
 
@@ -275,7 +324,27 @@ func _on_new_connection(user_id: String, address: String) -> void:
 	for u in user_list:
 		if u["id"] == user_id:
 			u["address"] = address
-			return
+			break
+	_send_user_data_query(user_id)
+
+func _send_user_data_query(user_id: String) -> void:
+	var msg = XmlMessage.new()
+	msg.add_data(_D.XN_USERID, local_user.get("id", ""))
+	msg.add_data(_D.XN_NAME, local_user.get("name", ""))
+	msg.add_data(_D.XN_ADDRESS, local_user.get("address", ""))
+	msg.add_data(_D.XN_VERSION, local_user.get("version", ""))
+	msg.add_data(_D.XN_STATUS, local_user.get("status", ""))
+	msg.add_data(_D.XN_NOTE, local_user.get("note", ""))
+	msg.add_data(_D.XN_USERCAPS, str(local_user.get("caps", 0)))
+	msg.add_data(_D.XN_QUERYOP, _D.QueryOpNames[_D.QueryOp.QO_Get])
+	_msg_id += 1
+	_prepare_message(_D.MessageType.MT_UserData, _msg_id, false, user_id, msg)
+
+func _send_acknowledge(user_id: String, msg_id: int) -> void:
+	var reply = XmlMessage.new()
+	reply.add_data(_D.XN_MESSAGEID, str(msg_id))
+	_msg_id += 1
+	_prepare_message(_D.MessageType.MT_Acknowledge, _msg_id, false, user_id, reply)
 
 func _on_connection_lost(user_id: String) -> void:
 	_remove_all_pending_msg(user_id)

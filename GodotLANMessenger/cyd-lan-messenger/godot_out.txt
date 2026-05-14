@@ -1,0 +1,1 @@
+Invalid project path specified: "C:\Users\magba\OneDrive\Desktop\Vibe", aborting.

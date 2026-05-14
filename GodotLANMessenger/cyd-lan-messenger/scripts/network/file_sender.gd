@@ -53,10 +53,13 @@ func _process(delta):
 		if _active:
 			_on_disconnected()
 		return
-	if status == StreamPeerTCP.STATUS_CONNECTED:
+	if status == StreamPeerTCP.STATUS_CONNECTED and _handshake_sent:
 		var avail = _socket.get_available_bytes()
-		if avail > 0 and _handshake_sent:
-			_on_ready_read()
+		if avail > 0 and not _file:
+			_socket.get_data(avail)
+			_send_file()
+		elif _active:
+			_send_file()
 	if _active and _timer > 0:
 		_timer -= delta
 		if _timer <= 0:

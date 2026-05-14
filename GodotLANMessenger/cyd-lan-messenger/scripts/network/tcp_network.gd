@@ -1,5 +1,8 @@
 extends Node
 const _D = preload("res://scripts/network/definitions.gd")
+const _MsgStream = preload("msg_stream.gd")
+const _FileSender = preload("file_sender.gd")
+const _FileReceiver = preload("file_receiver.gd")
 signal new_connection(user_id, address)
 signal connection_lost(user_id)
 signal message_received(pHeader, data)
@@ -20,11 +23,13 @@ func _init():
 	_server = TCPServer.new()
 
 func init_config(port: int = 0, settings: Dictionary = {}) -> void:
-	_tcp_port = port if port > 0 else settings.get("tcp_port", 12112)
+	_tcp_port = port if port > 0 else settings.get("tcp_port", 50000)
 
 func start() -> void:
 	if _server.listen(_tcp_port) != OK:
 		push_error("TCP server failed to listen on port ", _tcp_port)
+	else:
+		print("CydLAN: TCP listening on port ", _tcp_port)
 	is_running = true
 
 func stop() -> void:
@@ -45,7 +50,8 @@ func set_crypto(crypto) -> void:
 
 func add_connection(user_id: String, address: String) -> void:
 	if not is_running: return
-	var stream = preload("msg_stream.gd").new(local_id, user_id, address, _tcp_port)
+	print("CydLAN: TCP add connection to ", user_id, " at ", address)
+	var stream = _MsgStream.new(local_id, user_id, address, _tcp_port)
 	stream.connection_lost.connect(_on_msg_stream_connection_lost)
 	stream.message_received.connect(_on_receive_message)
 	if user_id == local_id:
@@ -58,19 +64,23 @@ func add_connection(user_id: String, address: String) -> void:
 func send_message(receiver_id: String, data: String) -> void:
 	if not is_running: return
 	var stream = _loc_msg_stream if receiver_id == local_id else _message_map.get(receiver_id, null)
-	if not stream: return
+	if not stream:
+		print("CydLAN: TCP message failed, no stream for ", receiver_id)
+		return
 	var clear_data = data.to_utf8_buffer()
 	var cipher_data = clear_data
 	if _crypto:
 		cipher_data = _crypto.encrypt(receiver_id, clear_data)
-	if cipher_data.is_empty(): return
+	if cipher_data.is_empty():
+		print("CydLAN: TCP message failed, encryption not ready for ", receiver_id)
+		return
 	cipher_data = Datagram.add_header(_D.DatagramType.DT_Message, cipher_data)
 	stream.send_message(cipher_data)
 
 func init_send_file(receiver_id: String, address: String, data: String) -> void:
 	var msg = XmlMessage.new(data)
 	var file_type = Helper.index_of(_D.FileTypeNames, msg.data(_D.XN_FILETYPE))
-	var sender = preload("file_sender.gd").new(
+	var sender = _FileSender.new(
 		msg.data(_D.XN_FILEID), local_id, receiver_id,
 		msg.data(_D.XN_FILEPATH), msg.data(_D.XN_FILENAME),
 		int(msg.data(_D.XN_FILESIZE)), address, _tcp_port, file_type)
@@ -82,7 +92,7 @@ func init_send_file(receiver_id: String, address: String, data: String) -> void:
 func init_receive_file(sender_id: String, address: String, data: String) -> void:
 	var msg = XmlMessage.new(data)
 	var file_type = Helper.index_of(_D.FileTypeNames, msg.data(_D.XN_FILETYPE))
-	var receiver = preload("file_receiver.gd").new(
+	var receiver = _FileReceiver.new(
 		msg.data(_D.XN_FILEID), sender_id,
 		msg.data(_D.XN_FILEPATH), msg.data(_D.XN_FILENAME),
 		int(msg.data(_D.XN_FILESIZE)), address, _tcp_port, file_type)
@@ -114,6 +124,7 @@ func _process(delta):
 		return
 	if _server.is_connection_available():
 		var socket = _server.take_connection()
+		print("CydLAN: TCP incoming socket from ", socket.get_connected_host())
 		_pending_sockets.append(socket)
 
 	if _pending_sockets.size() > 0:
@@ -121,11 +132,12 @@ func _process(delta):
 		while i < _pending_sockets.size():
 			var sock = _pending_sockets[i]
 			if sock.get_available_bytes() >= 3:
-				var result = sock.get_data(64)
-				if result["error"] == OK:
-					var prefix = result["data"]
+				var result = sock.get_partial_data(sock.get_available_bytes())
+				if result[0] == OK:
+					var prefix = result[1]
 					if prefix.size() >= 3 and prefix.slice(0, 3).get_string_from_utf8() == "MSG":
 						var user_id = prefix.slice(3).get_string_from_utf8()
+						print("CydLAN: TCP incoming MSG stream from ", user_id)
 						_add_msg_socket(user_id, sock)
 					elif prefix.size() >= 4 and prefix.slice(0, 4).get_string_from_utf8() == "FILE":
 						var file_id = prefix.slice(4, 36).get_string_from_utf8()
@@ -166,20 +178,26 @@ func _on_receive_message(user_id: String, address: String, data: PackedByteArray
 	var cipher_data = Datagram.get_data(data)
 	match pHeader["type"]:
 		_D.DatagramType.DT_PublicKey:
+			print("CydLAN: TCP received public key from ", user_id)
 			_send_session_key(user_id, cipher_data)
 		_D.DatagramType.DT_Handshake:
+			_ensure_key()
 			if _crypto: _crypto.retrieve_aes(user_id, cipher_data)
+			print("CydLAN: TCP handshake complete with ", user_id)
 			new_connection.emit(user_id, address)
 		_D.DatagramType.DT_Message:
 			var clear_data = cipher_data
 			if _crypto: clear_data = _crypto.decrypt(user_id, cipher_data)
-			if clear_data.is_empty(): return
+			if clear_data.is_empty():
+				print("CydLAN: TCP received message but decrypt failed from ", user_id)
+				return
 			var sz = clear_data.get_string_from_utf8()
+			print("CydLAN: TCP received message from ", user_id)
 			message_received.emit(pHeader, sz)
 
 func _add_msg_socket(user_id: String, socket) -> void:
 	var address = socket.get_connected_host()
-	var stream = preload("msg_stream.gd").new(local_id, user_id, address, _tcp_port)
+	var stream = _MsgStream.new(local_id, user_id, address, _tcp_port)
 	stream.connection_lost.connect(_on_msg_stream_connection_lost)
 	stream.message_received.connect(_on_receive_message)
 	_message_map[user_id] = stream
@@ -192,11 +210,17 @@ func _add_file_socket(file_id: String, user_id: String, socket) -> void:
 	if receiver:
 		receiver.init_receive(socket)
 
+func _ensure_key():
+	if _crypto and _crypto.public_key.is_empty():
+		_crypto.generate_rsa()
+
 func _send_public_key(user_id: String) -> void:
+	_ensure_key()
 	var stream = _message_map.get(user_id, null)
 	if not stream: return
 	var public_key = _crypto.public_key if _crypto else PackedByteArray()
 	public_key = Datagram.add_header(_D.DatagramType.DT_PublicKey, public_key)
+	print("CydLAN: TCP sending public key to ", user_id)
 	stream.send_message(public_key)
 
 func _send_session_key(user_id: String, public_key: PackedByteArray) -> void:
@@ -204,7 +228,11 @@ func _send_session_key(user_id: String, public_key: PackedByteArray) -> void:
 	if not stream: return
 	var session_key = PackedByteArray()
 	if _crypto: session_key = _crypto.generate_aes(user_id, public_key)
+	if session_key.is_empty():
+		print("CydLAN: TCP failed to create session key for ", user_id)
+		return
 	session_key = Datagram.add_header(_D.DatagramType.DT_Handshake, session_key)
+	print("CydLAN: TCP sending session key to ", user_id)
 	stream.send_message(session_key)
 
 func _get_sender(fid: String, uid: String):

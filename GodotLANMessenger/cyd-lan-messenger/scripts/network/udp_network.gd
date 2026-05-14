@@ -12,10 +12,11 @@ var _local_id: String = ""
 var _crypto = null
 var _is_running: bool = false
 var _udp_port: int = 0
-var _multicast_address: String = "225.0.0.37"
+var _multicast_address: String = "239.255.100.100"
 var _broadcast_list: Array = []
 var _ip_address: String = ""
 var _subnet_mask: String = ""
+var _interface_name: String = ""
 var _default_broadcast: String = "255.255.255.255"
 
 func _init():
@@ -23,14 +24,19 @@ func _init():
 
 func init_config(port: int = 0, settings: Dictionary = {}) -> void:
 	_settings = settings
-	_udp_port = port if port > 0 else _settings.get("udp_port", 12111)
-	_multicast_address = _settings.get("multicast", "225.0.0.37")
+	_udp_port = port if port > 0 else _settings.get("udp_port", 50000)
+	_multicast_address = _settings.get("multicast", "239.255.100.100")
 	_broadcast_list = _settings.get("broadcast_list", [])
 
 func start() -> void:
-	if _udp.bind(_udp_port, "*"):
+	if _udp.bind(_udp_port, "*") == OK:
 		_is_running = true
 		can_receive = true
+		_udp.set_broadcast_enabled(true)
+		print("CydLAN: UDP bound to port ", _udp_port)
+		# Try multicast join (non-critical; falls back to directed broadcast on Windows)
+	else:
+		print("CydLAN: UDP bind FAILED on port ", _udp_port)
 
 func stop() -> void:
 	_udp.close()
@@ -60,10 +66,22 @@ func settings_changed(settings: Dictionary) -> void:
 	if not _default_broadcast in _broadcast_list:
 		_broadcast_list.append(_default_broadcast)
 
-func set_ip_address(address: String, subnet: String) -> void:
+func set_ip_address(address: String, subnet: String, if_name: String = "") -> void:
 	_ip_address = address
 	_subnet_mask = subnet
+	_interface_name = if_name
 	_set_default_broadcast()
+	if _subnet_mask.is_empty() and not _ip_address.is_empty():
+		var parts = _ip_address.split(".")
+		if parts.size() == 4:
+			var candidates = [
+				parts[0] + "." + parts[1] + "." + parts[2] + ".255",
+				parts[0] + "." + parts[1] + ".255.255",
+				parts[0] + ".255.255.255"
+			]
+			for c in candidates:
+				if not c in _broadcast_list:
+					_broadcast_list.append(c)
 	if not _default_broadcast in _broadcast_list:
 		_broadcast_list.append(_default_broadcast)
 
@@ -77,7 +95,12 @@ func _process(delta):
 
 func _parse_datagram(address: String, data: PackedByteArray) -> void:
 	var pHeader = { "type": _D.DatagramType.DT_Broadcast, "userId": "", "address": address }
-	var szData = data.get_string_from_utf8()
+	var packet_data = data
+	if packet_data.size() >= 6:
+		var prefix = packet_data.slice(0, 6).get_string_from_utf8()
+		if prefix == _D.DatagramTypeNames[_D.DatagramType.DT_Broadcast]:
+			packet_data = packet_data.slice(6)
+	var szData = packet_data.get_string_from_utf8()
 	broadcast_received.emit(pHeader, szData)
 
 func _set_default_broadcast() -> void:

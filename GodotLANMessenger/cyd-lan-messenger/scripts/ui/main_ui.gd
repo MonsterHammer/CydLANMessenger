@@ -1,5 +1,6 @@
 extends Control
 const _D = preload("res://scripts/network/definitions.gd")
+const _LanMessenger = preload("res://scripts/network/lan_messenger.gd")
 
 @onready var user_list: ItemList = %UserItemList
 @onready var chat_log: RichTextLabel = %ChatLog
@@ -7,29 +8,57 @@ const _D = preload("res://scripts/network/definitions.gd")
 @onready var send_btn: Button = %SendButton
 
 var _user_id_map: Dictionary = {}
+var _messaging: Node = null
+var _net_started: bool = false
 
 func _ready():
 	send_btn.pressed.connect(_on_send_pressed)
+	chat_log.text = "CYD LAN Messenger started.\nClick Refresh to start."
 
-	var msg = LanMessenger.messaging
-	if not msg: return
+func _on_refresh_button_pressed():
+	if not _net_started:
+		_net_start()
+	elif _messaging:
+		_messaging.refresh()
+		chat_log.text += "\nRefreshing..."
+	await get_tree().process_frame
+	_sync_user_list()
 
-	msg.user_added.connect(_on_user_added)
-	msg.user_removed.connect(_on_user_removed)
-	msg.message_received.connect(_on_message_received)
+func _net_start():
+	var inst = _LanMessenger.new()
+	add_child(inst)
+	_messaging = inst.messaging
+	if not _messaging:
+		chat_log.text += "\nNetwork module failed to initialize"
+		return
+	_net_started = true
+	_messaging.user_added.connect(_on_user_added)
+	_messaging.user_removed.connect(_on_user_removed)
+	_messaging.message_received.connect(_on_message_received)
+	chat_log.text += "\nLocal: " + _messaging.local_user.get("name", "unknown")
+	_sync_user_list()
 
-	chat_log.text = "[color=#8e9297]CYD LAN Messenger started.\nLocal: %s\nWaiting for peers on port 12111:12112...[/color]" % LanMessenger.messaging.local_user.get("name", "unknown")
-
-	for user in msg.user_list:
+func _sync_user_list() -> void:
+	if not _messaging:
+		return
+	for user in _messaging.user_list:
 		_on_user_added(user)
 
 func _on_user_added(user: Dictionary):
 	var uid = user.get("id", "")
+	if uid.is_empty():
+		return
 	if _user_id_map.has(uid): return
-	var name = user.get("name", uid)
-	var idx = user_list.add_item(name)
+	var name = user.get("name", "").strip_edges()
+	var address = user.get("address", "").strip_edges()
+	if name.is_empty():
+		name = uid
+	var label = name
+	if not address.is_empty():
+		label += " (" + address + ")"
+	var idx = user_list.add_item(label)
 	_user_id_map[uid] = idx
-	chat_log.text += "\n[color=#43b581]%s connected (%s)[/color]" % [name, user.get("address", "")]
+	chat_log.text += "\n" + label + " connected"
 
 func _on_user_removed(user_id: String):
 	if not _user_id_map.has(user_id): return
@@ -40,41 +69,28 @@ func _on_user_removed(user_id: String):
 	for key in _user_id_map:
 		if _user_id_map[key] > idx:
 			_user_id_map[key] -= 1
-	chat_log.text += "\n[color=#f04747]%s disconnected[/color]" % name
+	chat_log.text += "\n" + name + " disconnected"
 
 func _on_send_pressed():
 	var text = message_input.text.strip_edges()
 	if text.is_empty(): return
 	var sel = user_list.get_selected_items()
 	if sel.size() == 0:
-		chat_log.text += "\n[color=#faa61a]Select a user to message[/color]"
+		chat_log.text += "\nSelect a user to message"
 		return
-
 	var name = user_list.get_item_text(sel[0])
 	var uid = ""
 	for key in _user_id_map:
 		if _user_id_map[key] == sel[0]:
 			uid = key
 			break
-
-	var msg = LanMessenger.messaging
-	if msg and not uid.is_empty():
+	if _messaging and not uid.is_empty():
 		var xml = XmlMessage.new()
 		xml.add_data(_D.XN_MESSAGE, text)
-		msg.send_message(_D.MessageType.MT_Message, uid, xml)
-
-	chat_log.text += "\n[b][color=#f0c644]Me[/color][/b]: " + text
+		_messaging.send_message(_D.MessageType.MT_Message, uid, xml)
+	chat_log.text += "\nMe: " + text
 	message_input.text = ""
 	message_input.grab_focus()
 
 func _on_message_received(type: int, user_id: String, name: String, body: String):
-	if type == _D.MessageType.MT_Broadcast:
-		chat_log.text += "\n[color=#faa61a][Broadcast from %s][/color]: %s" % [name, body]
-	elif type == _D.MessageType.MT_ChatState:
-		chat_log.text += "\n[color=#8e9297]* %s is %s[/color]" % [name, body]
-	elif type == _D.MessageType.MT_Status:
-		chat_log.text += "\n[color=#8e9297]* %s status: %s[/color]" % [name, body]
-	elif type == _D.MessageType.MT_File or type == _D.MessageType.MT_Folder:
-		chat_log.text += "\n[color=#00aff4][File from %s]: %s[/color]" % [name, body]
-	else:
-		chat_log.text += "\n[b][color=#40444b]%s[/color][/b]: %s" % [name, body]
+	chat_log.text += "\n" + name + ": " + body

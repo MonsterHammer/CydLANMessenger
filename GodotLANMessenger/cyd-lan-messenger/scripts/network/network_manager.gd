@@ -1,5 +1,10 @@
 extends Node
 
+const _UdpNetwork = preload("res://scripts/network/udp_network.gd")
+const _TcpNetwork = preload("res://scripts/network/tcp_network.gd")
+const _WebNetwork = preload("res://scripts/network/web_network.gd")
+const _Crypto = preload("res://scripts/network/crypto.gd")
+
 signal connection_state_changed
 signal broadcast_received(pHeader, data)
 signal new_connection(user_id, address)
@@ -10,6 +15,7 @@ signal web_message_received(data)
 
 var ip_address: String = ""
 var subnet_mask: String = ""
+var interface_name: String = ""
 var is_connected: bool = false
 var can_receive: bool = false
 
@@ -19,15 +25,14 @@ var web: Node = null
 var crypto: Node = null
 
 var _settings: Dictionary = {}
-var _timer: float = 0.0
 var _local_id: String = ""
 var _started: bool = false
 
 func _ready():
-	udp = preload("res://scripts/network/udp_network.gd").new()
-	tcp = preload("res://scripts/network/tcp_network.gd").new()
-	web = preload("res://scripts/network/web_network.gd").new()
-	crypto = preload("res://scripts/network/crypto.gd").new()
+	udp = _UdpNetwork.new()
+	tcp = _TcpNetwork.new()
+	web = _WebNetwork.new()
+	crypto = _Crypto.new()
 
 	add_child(udp)
 	add_child(tcp)
@@ -51,14 +56,32 @@ func init_config(settings: Dictionary = {}) -> void:
 	tcp.init_config(tcp_port, _settings)
 
 func start() -> void:
-	crypto.generate_rsa()
 	udp.set_crypto(crypto)
 	tcp.set_crypto(crypto)
 	udp.set_local_id(_local_id)
 	tcp.set_local_id(_local_id)
 	is_connected = _check_connectivity()
 	if is_connected:
-		udp.set_ip_address(ip_address, subnet_mask)
+		udp.set_ip_address(ip_address, subnet_mask, interface_name)
+		var all_ips = IP.get_local_addresses()
+		for a in all_ips:
+			if a.contains(":") or not a.is_valid_ip_address():
+				continue
+			if a.begins_with("127.") or a.begins_with("169."):
+				continue
+			if a.begins_with("192.168.56.") or a.begins_with("192.168.137."):
+				continue
+			if a == ip_address:
+				continue
+			var parts = a.split(".")
+			if parts.size() == 4:
+				var candidates = [
+					parts[0] + "." + parts[1] + "." + parts[2] + ".255",
+					parts[0] + "." + parts[1] + ".255.255"
+				]
+				for c in candidates:
+					if not c in udp._broadcast_list:
+						udp._broadcast_list.append(c)
 		udp.start()
 		tcp.start()
 		can_receive = udp.can_receive
@@ -99,22 +122,7 @@ func settings_changed() -> void:
 	if udp: udp.settings_changed(_settings)
 
 func _process(delta):
-	if not _started: return
-	_timer += delta
-	if _timer >= 2.0:
-		_timer = 0.0
-		var prev = is_connected
-		is_connected = _check_connectivity()
-		if prev != is_connected:
-			if is_connected:
-				udp.set_ip_address(ip_address, subnet_mask)
-				udp.start()
-				tcp.start()
-				can_receive = udp.can_receive
-			else:
-				udp.stop()
-				tcp.stop()
-			connection_state_changed.emit()
+	pass
 
 func _on_udp_broadcast(pHeader, data: String) -> void:
 	broadcast_received.emit(pHeader, data)
@@ -137,10 +145,26 @@ func _on_web_message(data: String) -> void:
 func _get_ip_address() -> String:
 	var addrs = IP.get_local_addresses()
 	for a in addrs:
-		if a.begins_with("192.") or a.begins_with("10.") or a.begins_with("172."):
+		if a.contains(":") or not a.is_valid_ip_address():
+			continue
+		if a.begins_with("172.17."):
 			return a
+	var fallback = ""
+	for a in addrs:
+		if a.contains(":") or not a.is_valid_ip_address():
+			continue
+		if a.begins_with("127.") or a.begins_with("169."):
+			continue
+		if a.begins_with("192.168.56.") or a.begins_with("192.168.137."):
+			continue
+		if a.begins_with("172."):
+			if fallback.is_empty():
+				fallback = a
+			continue
+		return a
+	if not fallback.is_empty():
+		return fallback
 	return "127.0.0.1"
 
 func _check_connectivity() -> bool:
-	var ip = _get_ip_address()
-	return not ip.is_empty() and ip != "127.0.0.1"
+	return not ip_address.is_empty() and ip_address != "127.0.0.1"

@@ -1,0 +1,66 @@
+[gd_scene format=3 uid="uid://yq385qnkitmi"]
+
+[ext_resource type="Script" uid="uid://co0q7tws5k0da" path="res://scripts/ui/lan_test.gd" id="1_lan_test"]
+
+[node name="LANTest" type="Control" unique_id=1823695514]
+layout_mode = 3
+anchors_preset = 0
+offset_right = 480.0
+offset_bottom = 360.0
+script = ExtResource("1_lan_test")
+
+[node name="StatusLabel" type="Label" parent="." unique_id=1670098331]
+unique_name_in_owner = true
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = 8.0
+offset_top = 8.0
+offset_right = 8.0
+offset_bottom = 8.0
+grow_horizontal = 2
+grow_vertical = 2
+text = "Starting..."
+
+[node name="PeerList" type="ItemList" parent="." unique_id=1257502835]
+unique_name_in_owner = true
+layout_mode = 1
+anchors_preset = 11
+anchor_left = 1.0
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = 8.0
+offset_top = 32.0
+offset_right = -8.0
+offset_bottom = -44.0
+grow_horizontal = 0
+grow_vertical = 2
+
+[node name="RefreshBtn" type="Button" parent="." unique_id=409798194]
+unique_name_in_owner = true
+layout_mode = 1
+anchors_preset = -1
+anchor_left = 0.582
+anchor_top = 0.12200001
+anchor_right = 0.582
+anchor_bottom = 0.12200001
+offset_left = -153.36002
+offset_top = 39.079998
+offset_right = -33.360016
+offset_bottom = 99.08
+grow_horizontal = 2
+text = "Refresh"
+
+[node name="SendBtn" type="Button" parent="." unique_id=596428729]
+unique_name_in_owner = true
+layout_mode = 1
+anchors_preset = 5
+anchor_left = 0.5
+anchor_right = 0.5
+offset_left = 78.0
+offset_top = 150.0
+offset_right = 207.0
+offset_bottom = 186.0
+grow_horizontal = 2
+text = "Send Broadcast"

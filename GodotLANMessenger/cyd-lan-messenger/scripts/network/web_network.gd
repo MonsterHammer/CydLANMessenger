@@ -5,9 +5,10 @@ signal message_received(data)
 var _active: bool = false
 var _http: HTTPRequest = null
 
-func _init():
+func _ready():
 	_http = HTTPRequest.new()
 	add_child(_http)
+	_http.request_completed.connect(_on_request_completed)
 
 func send_message(url: String, _data: String = "") -> void:
 	if _active:
@@ -17,7 +18,6 @@ func send_message(url: String, _data: String = "") -> void:
 		_raise_error("error")
 		return
 	_active = true
-	_http.request_completed.connect(_on_request_completed)
 	_http.request(url)
 
 func _on_request_completed(result: int, response_code: int, headers: PackedStringArray, body: PackedByteArray) -> void:
