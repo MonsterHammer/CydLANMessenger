@@ -8,17 +8,17 @@ const TRAY_MENU_QUIT := 2
 
 const CLR_PRIMARY := Color("#0084FF")
 const CLR_BUBBLE_SENT := Color("#0084FF")
-const CLR_BUBBLE_RECV := Color("#E4E6EB")
-const CLR_TEXT := Color("#050505")
+const CLR_BUBBLE_RECV := Color("#2a2a2a")
+const CLR_TEXT := Color("#c0c0c0")
 const CLR_GREEN := Color("#31A24C")
-const CLR_ACTIVE := Color("#E7F3FF")
+const CLR_ACTIVE := Color("#1a2a3a")
 
 const AVATAR_SIZE := 28
 
 @onready var title_bar: Panel = %TitleBar
-@onready var minimize_btn: TextureButton = %MinimizeBtn
-@onready var maximize_btn: TextureButton = %MaximizeBtn
-@onready var close_btn: TextureButton = %CloseBtn
+@onready var minimize_btn: Button = %MinimizeBtn
+@onready var maximize_btn: Button = %MaximizeBtn
+@onready var close_btn: Button = %CloseBtn
 @onready var user_vbox: VBoxContainer = %UserVBox
 @onready var search_input: LineEdit = %SearchInput
 @onready var message_vbox: VBoxContainer = %MessageVBox

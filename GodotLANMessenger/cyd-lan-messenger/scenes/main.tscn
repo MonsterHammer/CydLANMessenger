@@ -5,60 +5,19 @@
 [ext_resource type="Texture2D" uid="uid://bqdrgyrkfi18b" path="res://Assets/NavIcons/Subtract.png" id="3_min"]
 [ext_resource type="Texture2D" uid="uid://bxjm8atj70r0k" path="res://Assets/NavIcons/Stop.png" id="4_max"]
 [ext_resource type="Texture2D" uid="uid://b07jvrvolk7ri" path="res://Assets/NavIcons/Close.png" id="5_close"]
+[ext_resource type="StyleBox" path="res://Assets/Themes/bg.tres" id="7_bg"]
+[ext_resource type="StyleBox" path="res://Assets/Themes/title_bar.tres" id="8_title"]
+[ext_resource type="StyleBox" path="res://Assets/Themes/sidebar.tres" id="9_sidebar"]
+[ext_resource type="StyleBox" path="res://Assets/Themes/chat_view.tres" id="10_chat_view"]
+[ext_resource type="StyleBox" path="res://Assets/Themes/chat_bg.tres" id="11_chat_bg"]
+[ext_resource type="StyleBox" path="res://Assets/Themes/chat_header.tres" id="12_chat_header"]
+[ext_resource type="StyleBox" path="res://Assets/Themes/input_panel.tres" id="13_input"]
+[ext_resource type="StyleBox" path="res://Assets/Themes/search_bg.tres" id="14_search"]
+[ext_resource type="StyleBox" path="res://Assets/Themes/msg_input.tres" id="15_msg_input"]
+[ext_resource type="StyleBox" path="res://Assets/Themes/scroll_bg.tres" id="16_scroll"]
 
-[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_bg"]
-content_margin_left = 1.0
-content_margin_top = 1.0
-content_margin_right = 1.0
-content_margin_bottom = 1.0
-bg_color = Color(0.12, 0.14, 0.11, 1)
-corner_radius_top_left = 4
-corner_radius_top_right = 4
-corner_radius_bottom_right = 4
-corner_radius_bottom_left = 4
-
-[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_title"]
-bg_color = Color(0.11, 0.11, 0.13, 1)
-corner_radius_top_left = 4
-corner_radius_top_right = 4
-
-[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_tbgi4"]
-border_width_left = 1
-corner_radius_bottom_left = 4
-
-[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_search"]
-content_margin_left = 8.0
-content_margin_top = 4.0
-content_margin_right = 8.0
-content_margin_bottom = 4.0
-bg_color = Color(0.9, 0.9, 0.9, 1)
-
-[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_scroll"]
-bg_color = Color(0, 0, 0, 0)
-
-[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_tefeu"]
-border_width_left = 1
-
-[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_chat_header"]
-bg_color = Color(1, 1, 1, 1)
-border_width_bottom = 1
-border_color = Color(0.88, 0.88, 0.88, 1)
-
-[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_input"]
-bg_color = Color(1, 1, 1, 1)
-border_width_top = 1
-border_color = Color(0.88, 0.88, 0.88, 1)
-
-[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_msg_input"]
-content_margin_left = 8.0
-content_margin_top = 6.0
-content_margin_right = 8.0
-content_margin_bottom = 6.0
-bg_color = Color(0.94, 0.94, 0.94, 1)
-
-[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_chat_bg"]
-bg_color = Color(0.937, 0.918, 0.886, 1)
-corner_radius_bottom_right = 4
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_jkv2x"]
+bg_color = Color(0.07450981, 0.07450981, 0.07450981, 1)
 
 [node name="Main" type="Control" unique_id=1378751185]
 layout_mode = 3
@@ -76,7 +35,7 @@ anchor_right = 1.0
 anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
-theme_override_styles/panel = SubResource("StyleBoxFlat_bg")
+theme_override_styles/panel = ExtResource("7_bg")
 
 [node name="VBoxContainer" type="VBoxContainer" parent="Background" unique_id=463479618]
 layout_mode = 2
@@ -86,7 +45,7 @@ theme_override_constants/separation = 0
 unique_name_in_owner = true
 custom_minimum_size = Vector2(0, 35)
 layout_mode = 2
-theme_override_styles/panel = SubResource("StyleBoxFlat_title")
+theme_override_styles/panel = ExtResource("8_title")
 
 [node name="TitleHBox" type="HBoxContainer" parent="Background/VBoxContainer/TitleBar" unique_id=1071306212]
 layout_mode = 0
@@ -129,6 +88,7 @@ custom_minimum_size = Vector2(35, 35)
 layout_mode = 2
 size_flags_horizontal = 0
 size_flags_vertical = 4
+theme_override_styles/normal = SubResource("StyleBoxFlat_jkv2x")
 
 [node name="TextureRect" type="TextureRect" parent="Background/VBoxContainer/TitleBar/TitleHBox/MinimizeBtn" unique_id=367331118]
 custom_minimum_size = Vector2(20, 20)
@@ -153,6 +113,7 @@ custom_minimum_size = Vector2(35, 35)
 layout_mode = 2
 size_flags_horizontal = 0
 size_flags_vertical = 4
+theme_override_styles/normal = SubResource("StyleBoxFlat_jkv2x")
 
 [node name="TextureRect" type="TextureRect" parent="Background/VBoxContainer/TitleBar/TitleHBox/MaximizeBtn" unique_id=1876043499]
 custom_minimum_size = Vector2(20, 20)
@@ -177,6 +138,7 @@ custom_minimum_size = Vector2(35, 35)
 layout_mode = 2
 size_flags_horizontal = 0
 size_flags_vertical = 4
+theme_override_styles/normal = SubResource("StyleBoxFlat_jkv2x")
 
 [node name="TextureRect" type="TextureRect" parent="Background/VBoxContainer/TitleBar/TitleHBox/CloseBtn" unique_id=862842429]
 custom_minimum_size = Vector2(20, 20)
@@ -206,7 +168,7 @@ custom_minimum_size = Vector2(191, 0)
 layout_mode = 2
 size_flags_horizontal = 0
 size_flags_vertical = 3
-theme_override_styles/panel = SubResource("StyleBoxFlat_tbgi4")
+theme_override_styles/panel = ExtResource("9_sidebar")
 
 [node name="SidebarVBox" type="VBoxContainer" parent="Background/VBoxContainer/BodyHBox/LeftSidebar" unique_id=1060024064]
 layout_mode = 0
@@ -216,25 +178,40 @@ grow_horizontal = 2
 grow_vertical = 2
 theme_override_constants/separation = 0
 
-[node name="SearchInput" type="LineEdit" parent="Background/VBoxContainer/BodyHBox/LeftSidebar/SidebarVBox" unique_id=435725086]
-unique_name_in_owner = true
+[node name="SearchHBox" type="HBoxContainer" parent="Background/VBoxContainer/BodyHBox/LeftSidebar/SidebarVBox" unique_id=435725086]
 custom_minimum_size = Vector2(0, 28)
 layout_mode = 2
 size_flags_horizontal = 3
 size_flags_vertical = 0
-theme_override_colors/font_color = Color(0.02, 0.02, 0.02, 1)
+theme_override_constants/separation = 0
+
+[node name="SearchInput" type="LineEdit" parent="Background/VBoxContainer/BodyHBox/LeftSidebar/SidebarVBox/SearchHBox" unique_id=1664823805]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 4
+theme_override_colors/font_color = Color(0.88, 0.88, 0.88, 1)
 theme_override_colors/caret_color = Color(0, 0.518, 1, 1)
 theme_override_font_sizes/font_size = 12
-theme_override_styles/normal = SubResource("StyleBoxFlat_search")
-theme_override_styles/focus = SubResource("StyleBoxFlat_search")
+theme_override_styles/normal = ExtResource("14_search")
+theme_override_styles/focus = ExtResource("14_search")
 placeholder_text = "Search"
 caret_blink = true
+
+[node name="SearchRefreshBtn" type="Button" parent="Background/VBoxContainer/BodyHBox/LeftSidebar/SidebarVBox/SearchHBox" unique_id=1007841236]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(28, 28)
+layout_mode = 2
+size_flags_horizontal = 0
+size_flags_vertical = 4
+flat = true
+text = "↻"
 
 [node name="UserScroll" type="ScrollContainer" parent="Background/VBoxContainer/BodyHBox/LeftSidebar/SidebarVBox" unique_id=2098617750]
 layout_mode = 2
 size_flags_horizontal = 3
 size_flags_vertical = 3
-theme_override_styles/panel = SubResource("StyleBoxFlat_scroll")
+theme_override_styles/panel = ExtResource("16_scroll")
 
 [node name="UserVBox" type="VBoxContainer" parent="Background/VBoxContainer/BodyHBox/LeftSidebar/SidebarVBox/UserScroll" unique_id=1672891848]
 unique_name_in_owner = true
@@ -246,7 +223,7 @@ unique_name_in_owner = true
 layout_mode = 2
 size_flags_horizontal = 3
 size_flags_vertical = 3
-theme_override_styles/panel = SubResource("StyleBoxFlat_tefeu")
+theme_override_styles/panel = ExtResource("10_chat_view")
 
 [node name="ChatHeader" type="Panel" parent="Background/VBoxContainer/BodyHBox/ChatView" unique_id=1621116305]
 unique_name_in_owner = true
@@ -255,7 +232,7 @@ anchor_right = 1.0
 offset_bottom = 36.0
 grow_vertical = 0
 mouse_filter = 1
-theme_override_styles/panel = SubResource("StyleBoxFlat_chat_header")
+theme_override_styles/panel = ExtResource("12_chat_header")
 
 [node name="ChatHeaderHBox" type="HBoxContainer" parent="Background/VBoxContainer/BodyHBox/ChatView/ChatHeader" unique_id=127854335]
 layout_mode = 0
@@ -282,7 +259,7 @@ size_flags_vertical = 4
 [node name="ChatUserName" type="Label" parent="Background/VBoxContainer/BodyHBox/ChatView/ChatHeader/ChatHeaderHBox/ChatNameVBox" unique_id=1354653172]
 unique_name_in_owner = true
 layout_mode = 2
-theme_override_colors/font_color = Color(0.02, 0.02, 0.02, 1)
+theme_override_colors/font_color = Color(0.88, 0.88, 0.88, 1)
 theme_override_font_sizes/font_size = 13
 text = "Select a user"
 
@@ -305,7 +282,7 @@ anchor_right = 1.0
 anchor_bottom = 1.0
 offset_top = 36.0
 offset_bottom = 40.0
-theme_override_styles/panel = SubResource("StyleBoxFlat_scroll")
+theme_override_styles/panel = ExtResource("16_scroll")
 
 [node name="MessageVBox" type="VBoxContainer" parent="Background/VBoxContainer/BodyHBox/ChatView/MessageScroll" unique_id=1204050868]
 unique_name_in_owner = true
@@ -324,7 +301,7 @@ offset_left = -100.0
 offset_top = -16.0
 offset_right = 100.0
 offset_bottom = 16.0
-theme_override_colors/font_color = Color(0.4, 0.4, 0.42, 1)
+theme_override_colors/font_color = Color(0.5, 0.5, 0.53, 1)
 theme_override_font_sizes/font_size = 13
 text = "Select a conversation"
 horizontal_alignment = 1
@@ -337,7 +314,7 @@ anchor_top = 1.0
 anchor_right = 1.0
 anchor_bottom = 1.0
 offset_top = -40.0
-theme_override_styles/panel = SubResource("StyleBoxFlat_input")
+theme_override_styles/panel = ExtResource("13_input")
 
 [node name="InputHBox" type="HBoxContainer" parent="Background/VBoxContainer/BodyHBox/ChatView/InputPanel" unique_id=726815535]
 layout_mode = 0
@@ -353,10 +330,10 @@ layout_mode = 2
 size_flags_horizontal = 3
 size_flags_vertical = 4
 theme_override_colors/caret_color = Color(0, 0.518, 1, 1)
-theme_override_colors/font_color = Color(0.02, 0.02, 0.02, 1)
+theme_override_colors/font_color = Color(0.88, 0.88, 0.88, 1)
 theme_override_font_sizes/font_size = 12
-theme_override_styles/normal = SubResource("StyleBoxFlat_msg_input")
-theme_override_styles/focus = SubResource("StyleBoxFlat_msg_input")
+theme_override_styles/normal = ExtResource("15_msg_input")
+theme_override_styles/focus = ExtResource("15_msg_input")
 placeholder_text = "Aa"
 caret_blink = true
 
@@ -376,7 +353,7 @@ unique_name_in_owner = true
 custom_minimum_size = Vector2(120, 0)
 layout_mode = 2
 size_flags_vertical = 3
-theme_override_styles/panel = SubResource("StyleBoxFlat_chat_bg")
+theme_override_styles/panel = ExtResource("11_chat_bg")
 
 [node name="RefreshButton" type="Button" parent="." unique_id=213867035]
 visible = false
@@ -388,3 +365,4 @@ offset_bottom = 28.0
 text = "↻"
 
 [connection signal="pressed" from="RefreshButton" to="." method="_on_refresh_button_pressed"]
+[connection signal="pressed" from="Background/VBoxContainer/BodyHBox/LeftSidebar/SidebarVBox/SearchHBox/SearchRefreshBtn" to="." method="_on_refresh_button_pressed"]
