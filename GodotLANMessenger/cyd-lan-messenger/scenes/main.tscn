@@ -82,15 +82,19 @@ layout_mode = 2
 size_flags_horizontal = 3
 size_flags_vertical = 4
 
-[node name="MinimizeBtn" type="Button" parent="Background/VBoxContainer/TitleBar/TitleHBox" unique_id=968780684]
+[node name="HBoxContainer2" type="HBoxContainer" parent="Background/VBoxContainer/TitleBar/TitleHBox" unique_id=808538203]
+layout_mode = 2
+theme_override_constants/separation = 0
+
+[node name="MinimizeBtn" type="Button" parent="Background/VBoxContainer/TitleBar/TitleHBox/HBoxContainer2" unique_id=968780684]
 unique_name_in_owner = true
-custom_minimum_size = Vector2(35, 35)
+custom_minimum_size = Vector2(34, 34)
 layout_mode = 2
 size_flags_horizontal = 0
 size_flags_vertical = 4
 theme_override_styles/normal = SubResource("StyleBoxFlat_jkv2x")
 
-[node name="TextureRect" type="TextureRect" parent="Background/VBoxContainer/TitleBar/TitleHBox/MinimizeBtn" unique_id=367331118]
+[node name="TextureRect" type="TextureRect" parent="Background/VBoxContainer/TitleBar/TitleHBox/HBoxContainer2/MinimizeBtn" unique_id=367331118]
 custom_minimum_size = Vector2(20, 20)
 layout_mode = 1
 anchors_preset = 8
@@ -107,15 +111,15 @@ grow_vertical = 2
 texture = ExtResource("3_min")
 expand_mode = 1
 
-[node name="MaximizeBtn" type="Button" parent="Background/VBoxContainer/TitleBar/TitleHBox" unique_id=1711801249]
+[node name="MaximizeBtn" type="Button" parent="Background/VBoxContainer/TitleBar/TitleHBox/HBoxContainer2" unique_id=1711801249]
 unique_name_in_owner = true
-custom_minimum_size = Vector2(35, 35)
+custom_minimum_size = Vector2(34, 34)
 layout_mode = 2
 size_flags_horizontal = 0
 size_flags_vertical = 4
 theme_override_styles/normal = SubResource("StyleBoxFlat_jkv2x")
 
-[node name="TextureRect" type="TextureRect" parent="Background/VBoxContainer/TitleBar/TitleHBox/MaximizeBtn" unique_id=1876043499]
+[node name="TextureRect" type="TextureRect" parent="Background/VBoxContainer/TitleBar/TitleHBox/HBoxContainer2/MaximizeBtn" unique_id=1876043499]
 custom_minimum_size = Vector2(20, 20)
 layout_mode = 1
 anchors_preset = 8
@@ -132,15 +136,15 @@ grow_vertical = 2
 texture = ExtResource("4_max")
 expand_mode = 1
 
-[node name="CloseBtn" type="Button" parent="Background/VBoxContainer/TitleBar/TitleHBox" unique_id=1207862820]
+[node name="CloseBtn" type="Button" parent="Background/VBoxContainer/TitleBar/TitleHBox/HBoxContainer2" unique_id=1207862820]
 unique_name_in_owner = true
-custom_minimum_size = Vector2(35, 35)
+custom_minimum_size = Vector2(34, 34)
 layout_mode = 2
 size_flags_horizontal = 0
 size_flags_vertical = 4
 theme_override_styles/normal = SubResource("StyleBoxFlat_jkv2x")
 
-[node name="TextureRect" type="TextureRect" parent="Background/VBoxContainer/TitleBar/TitleHBox/CloseBtn" unique_id=862842429]
+[node name="TextureRect" type="TextureRect" parent="Background/VBoxContainer/TitleBar/TitleHBox/HBoxContainer2/CloseBtn" unique_id=862842429]
 custom_minimum_size = Vector2(20, 20)
 layout_mode = 1
 anchors_preset = 8
@@ -230,20 +234,16 @@ theme_override_styles/panel = ExtResource("10_chat_view")
 [node name="VBoxContainer" type="VBoxContainer" parent="Background/VBoxContainer/BodyHBox/ChatView" unique_id=894068008]
 layout_mode = 2
 
-[node name="ChatHeader" type="Panel" parent="Background/VBoxContainer/BodyHBox/ChatView/VBoxContainer" unique_id=1621116305]
+[node name="ChatHeader" type="PanelContainer" parent="Background/VBoxContainer/BodyHBox/ChatView/VBoxContainer" unique_id=874582065]
 unique_name_in_owner = true
-custom_minimum_size = Vector2(35, 50)
+custom_minimum_size = Vector2(35, 35)
 layout_mode = 2
 size_flags_vertical = 0
 mouse_filter = 1
 theme_override_styles/panel = ExtResource("12_chat_header")
 
 [node name="ChatHeaderHBox" type="HBoxContainer" parent="Background/VBoxContainer/BodyHBox/ChatView/VBoxContainer/ChatHeader" unique_id=127854335]
-layout_mode = 0
-anchor_right = 1.0
-anchor_bottom = 1.0
-grow_horizontal = 2
-grow_vertical = 2
+layout_mode = 2
 theme_override_constants/separation = 8
 
 [node name="ChatAvatar" type="ColorRect" parent="Background/VBoxContainer/BodyHBox/ChatView/VBoxContainer/ChatHeader/ChatHeaderHBox" unique_id=1958040170]
