@@ -13,11 +13,20 @@
 [ext_resource type="StyleBox" uid="uid://cqfvb6wj6vwk5" path="res://Assets/Themes/chat_header.tres" id="12_chat_header"]
 [ext_resource type="StyleBox" uid="uid://d32vp5he3j1gk" path="res://Assets/Themes/input_panel.tres" id="13_input"]
 [ext_resource type="StyleBox" uid="uid://cw25p4lhoulua" path="res://Assets/Themes/search_bg.tres" id="14_search"]
-[ext_resource type="StyleBox" uid="uid://e5b25tvee51n" path="res://Assets/Themes/msg_input.tres" id="15_msg_input"]
 [ext_resource type="StyleBox" uid="uid://cvv81f7ayrsfj" path="res://Assets/Themes/scroll_bg.tres" id="16_scroll"]
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_jkv2x"]
 bg_color = Color(0.07450981, 0.07450981, 0.07450981, 1)
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_a8y0u"]
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_a8y0u"]
+bg_color = Color(0.114896946, 0.11489677, 0.11489683, 1)
+border_blend = true
+corner_radius_top_left = 4
+corner_radius_top_right = 4
+corner_radius_bottom_right = 4
+corner_radius_bottom_left = 4
 
 [node name="Main" type="Control" unique_id=1378751185]
 layout_mode = 3
@@ -52,6 +61,8 @@ layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
 theme_override_constants/separation = 0
 
 [node name="HBoxContainer" type="HBoxContainer" parent="Background/VBoxContainer/TitleBar/TitleHBox" unique_id=1587068692]
@@ -301,18 +312,14 @@ text = "Select a conversation"
 horizontal_alignment = 1
 vertical_alignment = 1
 
-[node name="InputPanel" type="Panel" parent="Background/VBoxContainer/BodyHBox/ChatView/VBoxContainer" unique_id=1953296017]
+[node name="InputPanel" type="PanelContainer" parent="Background/VBoxContainer/BodyHBox/ChatView/VBoxContainer" unique_id=1146522757]
 unique_name_in_owner = true
 custom_minimum_size = Vector2(0, 70)
 layout_mode = 2
 theme_override_styles/panel = ExtResource("13_input")
 
 [node name="InputHBox" type="HBoxContainer" parent="Background/VBoxContainer/BodyHBox/ChatView/VBoxContainer/InputPanel" unique_id=726815535]
-layout_mode = 0
-anchor_right = 1.0
-anchor_bottom = 1.0
-grow_horizontal = 2
-grow_vertical = 2
+layout_mode = 2
 theme_override_constants/separation = 4
 
 [node name="MessageInput" type="TextEdit" parent="Background/VBoxContainer/BodyHBox/ChatView/VBoxContainer/InputPanel/InputHBox" unique_id=2011380934]
@@ -322,21 +329,23 @@ size_flags_horizontal = 3
 theme_override_colors/caret_color = Color(0, 0.518, 1, 1)
 theme_override_colors/font_color = Color(0.88, 0.88, 0.88, 1)
 theme_override_font_sizes/font_size = 12
-theme_override_styles/normal = ExtResource("15_msg_input")
-theme_override_styles/focus = ExtResource("15_msg_input")
+theme_override_styles/normal = SubResource("StyleBoxEmpty_a8y0u")
+theme_override_styles/focus = SubResource("StyleBoxEmpty_a8y0u")
 placeholder_text = "Aa"
 caret_blink = true
 
 [node name="SendButton" type="Button" parent="Background/VBoxContainer/BodyHBox/ChatView/VBoxContainer/InputPanel/InputHBox" unique_id=1371442481]
 unique_name_in_owner = true
-custom_minimum_size = Vector2(32, 28)
+custom_minimum_size = Vector2(32, 32)
 layout_mode = 2
 size_flags_horizontal = 0
 size_flags_vertical = 4
 theme_override_colors/font_color = Color(0.98, 0.698, 0.514, 1)
 theme_override_font_sizes/font_size = 16
+theme_override_styles/normal = SubResource("StyleBoxFlat_a8y0u")
+theme_override_styles/pressed = SubResource("StyleBoxFlat_a8y0u")
+theme_override_styles/hover = SubResource("StyleBoxFlat_a8y0u")
 text = "➤"
-flat = true
 
 [node name="FilesHistory" type="Panel" parent="Background/VBoxContainer/BodyHBox" unique_id=1098089314]
 unique_name_in_owner = true

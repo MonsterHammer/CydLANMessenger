@@ -42,7 +42,45 @@ func _ready():
 	messaging.network.set_local_id(user_id)
 	messaging.init_config(settings)
 	print("CydLAN: Starting with IP=", address, " user_id=", user_id, " multicast=", settings["multicast"], " ports=", settings["port"], "/", settings["tcp_port"])
+	_clear_stale_port_owner(int(settings["tcp_port"]))
 	messaging.start()
+
+func _clear_stale_port_owner(port: int) -> void:
+	if OS.get_name() != "Windows":
+		return
+	var project_path = ProjectSettings.globalize_path("res://").rstrip("\\/")
+	var exe_path = OS.get_executable_path()
+	var script = """
+$port = %d
+$currentPid = %d
+$projectPath = '%s'
+$exePath = '%s'
+$owners = @()
+$owners += Get-NetTCPConnection -LocalPort $port -ErrorAction SilentlyContinue | Select-Object -ExpandProperty OwningProcess
+$owners += Get-NetUDPEndpoint -LocalPort $port -ErrorAction SilentlyContinue | Select-Object -ExpandProperty OwningProcess
+$owners | Sort-Object -Unique | ForEach-Object {
+	if ($_ -eq $currentPid) { return }
+	$p = Get-CimInstance Win32_Process -Filter "ProcessId=$_" -ErrorAction SilentlyContinue
+	if (-not $p) { return }
+	$cmd = [string]$p.CommandLine
+	$path = [string]$p.ExecutablePath
+	$isSameProject = $cmd.Contains($projectPath)
+	$isSameExecutable = ($path -eq $exePath)
+	if ($isSameProject -or $isSameExecutable) {
+		Stop-Process -Id $_ -Force
+		Write-Output "Stopped stale CydLAN process PID $_ on port $port"
+	}
+}
+""" % [port, OS.get_process_id(), project_path.replace("'", "''"), exe_path.replace("'", "''")]
+	var output: Array = []
+	var args = ["-NoProfile", "-ExecutionPolicy", "Bypass", "-Command", script]
+	var exit_code = OS.execute("powershell.exe", args, output, true)
+	if exit_code != 0:
+		output.clear()
+		exit_code = OS.execute("pwsh", args, output, true)
+	for line in output:
+		if not str(line).strip_edges().is_empty():
+			print("CydLAN: ", line)
 
 func _get_ip_address() -> String:
 	var addrs = IP.get_local_addresses()

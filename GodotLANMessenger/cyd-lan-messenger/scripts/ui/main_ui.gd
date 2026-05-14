@@ -44,10 +44,10 @@ func _ready():
 	DisplayServer.window_set_title(APP_TITLE); _setup_status_button(); call_deferred("_on_refresh_button_pressed")
 
 func _setup_window():
-	var win = get_window(); win.size = Vector2i(600, 400)
+	var win = get_window(); win.size = Vector2i(700, 500)
 	DisplayServer.window_set_flag(DisplayServer.WINDOW_FLAG_BORDERLESS, true)
 	var ss = DisplayServer.screen_get_size()
-	DisplayServer.window_set_position(Vector2i(ss.x / 2 - 300, ss.y / 2 - 200))
+	DisplayServer.window_set_position(Vector2i(ss.x / 2 - win.size.x / 2, ss.y / 2 - win.size.y / 2))
 	var t = load("res://icon.svg")
 	if t: var img = t.get_image(); if img: DisplayServer.set_icon(img)
 
