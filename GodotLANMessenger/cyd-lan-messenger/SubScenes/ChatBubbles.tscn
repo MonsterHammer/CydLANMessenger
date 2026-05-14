@@ -1,0 +1,39 @@
+[gd_scene format=3 uid="uid://ywmunqxcq43t"]
+
+[ext_resource type="Script" uid="uid://bdf3evhw2464h" path="res://SubScenes/chat_bubbles.gd" id="1_qtmyb"]
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_fl78x"]
+content_margin_left = 8.0
+content_margin_top = 8.0
+content_margin_right = 8.0
+content_margin_bottom = 0.0
+bg_color = Color(0.10980392, 0.10980392, 0.10980392, 1)
+corner_radius_top_left = 8
+corner_radius_top_right = 8
+corner_radius_bottom_right = 8
+corner_radius_bottom_left = 8
+
+[node name="ChatBubbles" type="PanelContainer" unique_id=1328638321]
+custom_minimum_size = Vector2(100, 50)
+theme_override_styles/panel = SubResource("StyleBoxFlat_fl78x")
+script = ExtResource("1_qtmyb")
+
+[node name="BoxHeader" type="VBoxContainer" parent="." unique_id=753122423]
+layout_mode = 2
+
+[node name="LabelChat2" type="Label" parent="BoxHeader" unique_id=1028984086]
+layout_mode = 2
+size_flags_vertical = 3
+theme_override_font_sizes/font_size = 12
+text = "This is a sample chat"
+
+[node name="LabelTime" type="Label" parent="BoxHeader" unique_id=247464054]
+custom_minimum_size = Vector2(50, 15)
+layout_mode = 2
+size_flags_horizontal = 8
+size_flags_vertical = 8
+theme_override_colors/font_color = Color(1, 1, 1, 0.34901962)
+theme_override_font_sizes/font_size = 10
+text = "24:25"
+horizontal_alignment = 2
+vertical_alignment = 1

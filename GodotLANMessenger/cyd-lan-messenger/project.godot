@@ -28,6 +28,10 @@ window/per_pixel_transparency/allowed=true
 
 enabled=PackedStringArray("res://addons/godot_mcp/plugin.cfg")
 
+[gui]
+
+theme/custom_font="uid://coa5erlehcyvm"
+
 [rendering]
 
 renderer/rendering_method="gl_compatibility"
