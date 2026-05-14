@@ -22,10 +22,9 @@ bg_color = Color(0.11, 0.11, 0.13, 1)
 corner_radius_top_left = 4
 corner_radius_top_right = 4
 
-[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_sidebar"]
-bg_color = Color(1, 1, 1, 1)
-border_width_right = 1
-border_color = Color(0.88, 0.88, 0.88, 1)
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_tbgi4"]
+border_width_left = 1
+corner_radius_bottom_left = 4
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_search"]
 content_margin_left = 8.0
@@ -37,8 +36,8 @@ bg_color = Color(0.9, 0.9, 0.9, 1)
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_scroll"]
 bg_color = Color(0, 0, 0, 0)
 
-[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_chat_bg"]
-bg_color = Color(0.937, 0.918, 0.886, 1)
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_tefeu"]
+border_width_left = 1
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_chat_header"]
 bg_color = Color(1, 1, 1, 1)
@@ -56,6 +55,10 @@ content_margin_top = 6.0
 content_margin_right = 8.0
 content_margin_bottom = 6.0
 bg_color = Color(0.94, 0.94, 0.94, 1)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_chat_bg"]
+bg_color = Color(0.937, 0.918, 0.886, 1)
+corner_radius_bottom_right = 4
 
 [node name="Main" type="Control" unique_id=1378751185]
 layout_mode = 3
@@ -203,7 +206,7 @@ custom_minimum_size = Vector2(191, 0)
 layout_mode = 2
 size_flags_horizontal = 0
 size_flags_vertical = 3
-theme_override_styles/panel = SubResource("StyleBoxFlat_sidebar")
+theme_override_styles/panel = SubResource("StyleBoxFlat_tbgi4")
 
 [node name="SidebarVBox" type="VBoxContainer" parent="Background/VBoxContainer/BodyHBox/LeftSidebar" unique_id=1060024064]
 layout_mode = 0
@@ -243,7 +246,7 @@ unique_name_in_owner = true
 layout_mode = 2
 size_flags_horizontal = 3
 size_flags_vertical = 3
-theme_override_styles/panel = SubResource("StyleBoxFlat_chat_bg")
+theme_override_styles/panel = SubResource("StyleBoxFlat_tefeu")
 
 [node name="ChatHeader" type="Panel" parent="Background/VBoxContainer/BodyHBox/ChatView" unique_id=1621116305]
 unique_name_in_owner = true
@@ -367,6 +370,13 @@ theme_override_colors/font_color = Color(0, 0.518, 1, 1)
 theme_override_font_sizes/font_size = 16
 text = "➤"
 flat = true
+
+[node name="FilesHistory" type="Panel" parent="Background/VBoxContainer/BodyHBox" unique_id=1098089314]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(120, 0)
+layout_mode = 2
+size_flags_vertical = 3
+theme_override_styles/panel = SubResource("StyleBoxFlat_chat_bg")
 
 [node name="RefreshButton" type="Button" parent="." unique_id=213867035]
 visible = false
