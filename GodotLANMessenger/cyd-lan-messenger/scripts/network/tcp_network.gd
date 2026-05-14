@@ -14,6 +14,7 @@ var _server: TCPServer = null
 var _send_list: Array = []
 var _receive_list: Array = []
 var _message_map: Dictionary = {}
+var _pending_message_map: Dictionary = {}
 var _loc_msg_stream: Node = null
 var _tcp_port: int = 0
 var _crypto = null
@@ -28,9 +29,10 @@ func init_config(port: int = 0, settings: Dictionary = {}) -> void:
 func start() -> void:
 	if _server.listen(_tcp_port) != OK:
 		push_error("TCP server failed to listen on port ", _tcp_port)
+		is_running = false
 	else:
 		print("CydLAN: TCP listening on port ", _tcp_port)
-	is_running = true
+		is_running = true
 
 func stop() -> void:
 	_server.stop()
@@ -40,6 +42,7 @@ func stop() -> void:
 		var stream = _message_map[user_id]
 		if stream: stream.stop()
 	_message_map.clear()
+	_pending_message_map.clear()
 	is_running = false
 
 func set_local_id(id: String) -> void:
@@ -61,21 +64,46 @@ func add_connection(user_id: String, address: String) -> void:
 	stream.init_client()
 	add_child(stream)
 
-func send_message(receiver_id: String, data: String) -> void:
+func send_message(receiver_id: String, address: String, data: String) -> void:
 	if not is_running: return
 	var stream = _loc_msg_stream if receiver_id == local_id else _message_map.get(receiver_id, null)
 	if not stream:
-		print("CydLAN: TCP message failed, no stream for ", receiver_id)
+		_queue_message(receiver_id, data)
+		if not address.is_empty():
+			add_connection(receiver_id, address)
+		else:
+			print("CydLAN: TCP queued message, no stream/address yet for ", receiver_id)
+		return
+	_send_or_queue_message(receiver_id, data)
+
+func _send_or_queue_message(receiver_id: String, data: String) -> void:
+	var stream = _loc_msg_stream if receiver_id == local_id else _message_map.get(receiver_id, null)
+	if not stream:
+		_queue_message(receiver_id, data)
 		return
 	var clear_data = data.to_utf8_buffer()
 	var cipher_data = clear_data
 	if _crypto:
 		cipher_data = _crypto.encrypt(receiver_id, clear_data)
 	if cipher_data.is_empty():
-		print("CydLAN: TCP message failed, encryption not ready for ", receiver_id)
+		_queue_message(receiver_id, data)
+		print("CydLAN: TCP queued message, encryption not ready for ", receiver_id)
 		return
 	cipher_data = Datagram.add_header(_D.DatagramType.DT_Message, cipher_data)
 	stream.send_message(cipher_data)
+
+func _queue_message(receiver_id: String, data: String) -> void:
+	if not _pending_message_map.has(receiver_id):
+		_pending_message_map[receiver_id] = []
+	_pending_message_map[receiver_id].append(data)
+
+func _flush_pending_messages(receiver_id: String) -> void:
+	if not _pending_message_map.has(receiver_id):
+		return
+	var queued: Array = _pending_message_map[receiver_id]
+	_pending_message_map.erase(receiver_id)
+	for data in queued:
+		_send_or_queue_message(receiver_id, data)
 
 func init_send_file(receiver_id: String, address: String, data: String) -> void:
 	var msg = XmlMessage.new(data)
@@ -148,6 +176,7 @@ func _process(delta):
 				i += 1
 
 func _on_msg_stream_connection_lost(user_id: String) -> void:
+	_message_map.erase(user_id)
 	connection_lost.emit(user_id)
 
 func _on_file_progress_updated(mode: int, op: int, ftype: int, fid: String, user_id: String, data: String) -> void:
@@ -184,6 +213,7 @@ func _on_receive_message(user_id: String, address: String, data: PackedByteArray
 			_ensure_key()
 			if _crypto: _crypto.retrieve_aes(user_id, cipher_data)
 			print("CydLAN: TCP handshake complete with ", user_id)
+			_flush_pending_messages(user_id)
 			new_connection.emit(user_id, address)
 		_D.DatagramType.DT_Message:
 			var clear_data = cipher_data
@@ -234,6 +264,7 @@ func _send_session_key(user_id: String, public_key: PackedByteArray) -> void:
 	session_key = Datagram.add_header(_D.DatagramType.DT_Handshake, session_key)
 	print("CydLAN: TCP sending session key to ", user_id)
 	stream.send_message(session_key)
+	_flush_pending_messages(user_id)
 
 func _get_sender(fid: String, uid: String):
 	for s in _send_list:

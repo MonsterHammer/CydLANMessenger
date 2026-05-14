@@ -15,6 +15,7 @@ const ST_CODES := ["chat","busy","dnd","brb","away","gone"]
 const SMILEYS := {":)":"😊",":D":"😄",":(":"😢",";)":"😉",":p":"😋",":P":"😋",":o":"😮",":O":"😮",":/":"😕",":|":"😐",":'(":"😢",":')":"😂","<3":"❤️","</3":"💔","^^":"😊",":*)":"😳","%-)":"🤔","B)":"😎","8)":"😎",":-?":"🤔"}
 const AVATAR_SIZE := 28; const HIST_FILE := "user://chat_history.json"
 const CHAT_BUBBLE_MAX_WIDTH_RATIO := 0.75
+const SENT_ECHO_IGNORE_SECONDS := 3.0
 
 @onready var title_bar: Panel = %TitleBar
 @onready var minimize_btn: Button = %MinimizeBtn; @onready var maximize_btn: Button = %MaximizeBtn; @onready var close_btn: Button = %CloseBtn
@@ -288,18 +289,19 @@ func _on_send_pressed():
 		var xml = XmlMessage.new(); xml.add_data(_D.XN_MESSAGE, text)
 		_messaging.send_message(_D.MessageType.MT_Message, _selected_user_id, xml)
 	var t = Time.get_time_string_from_system(false)
-	_sent_recently[text + t] = true
+	_sent_recently[text] = Time.get_unix_time_from_system() + SENT_ECHO_IGNORE_SECONDS
 	var display = _parse_smileys(text)
 	_add_to_history(_selected_user_id, display, true, "Me", t)
 	_add_bubble(display, true, "Me", t)
 	message_input.text = ""; message_input.grab_focus()
-	await get_tree().create_timer(2.0).timeout; _sent_recently.erase(text + t)
+	await get_tree().create_timer(SENT_ECHO_IGNORE_SECONDS).timeout
+	if _sent_recently.get(text, 0.0) <= Time.get_unix_time_from_system(): _sent_recently.erase(text)
 
 func _on_message_received(type: int, user_id: String, name: String, body: String):
 	if _messaging and _messaging.local_user.get("id", "") == user_id: return
 	if type == _D.MessageType.MT_File or type == _D.MessageType.MT_Folder: return
-	var t = Time.get_time_string_from_system(false); var key = body + t
-	if _sent_recently.has(key): return
+	var t = Time.get_time_string_from_system(false)
+	if _sent_recently.get(body, 0.0) > Time.get_unix_time_from_system(): return
 	var display = _parse_smileys(body)
 	_add_to_history(user_id, display, false, name, t)
 	if user_id == _selected_user_id: _add_bubble(display, false, name, t)

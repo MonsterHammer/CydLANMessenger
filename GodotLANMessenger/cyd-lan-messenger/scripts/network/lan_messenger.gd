@@ -46,18 +46,13 @@ func _ready():
 
 func _get_ip_address() -> String:
 	var addrs = IP.get_local_addresses()
-	for a in addrs:
-		if a.contains(":") or not a.is_valid_ip_address():
-			continue
-		if a.begins_with("172.17."):
-			return a
 	var fallback = ""
 	for a in addrs:
 		if a.contains(":") or not a.is_valid_ip_address():
 			continue
 		if a.begins_with("127.") or a.begins_with("169."):
 			continue
-		if a.begins_with("192.168.56.") or a.begins_with("192.168.137."):
+		if a.begins_with("172.17.") or a.begins_with("192.168.56.") or a.begins_with("192.168.137."):
 			continue
 		if a.begins_with("172."):
 			if fallback.is_empty():

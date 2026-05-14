@@ -103,8 +103,8 @@ func send_broadcast(data: String) -> void:
 func add_connection(user_id: String, address: String) -> void:
 	if tcp: tcp.add_connection(user_id, address)
 
-func send_message(receiver_id: String, _address: String, data: String) -> void:
-	if tcp: tcp.send_message(receiver_id, data)
+func send_message(receiver_id: String, address: String, data: String) -> void:
+	if tcp: tcp.send_message(receiver_id, address, data)
 
 func init_send_file(receiver_id: String, address: String, data: String) -> void:
 	if tcp: tcp.init_send_file(receiver_id, address, data)
@@ -144,18 +144,13 @@ func _on_web_message(data: String) -> void:
 
 func _get_ip_address() -> String:
 	var addrs = IP.get_local_addresses()
-	for a in addrs:
-		if a.contains(":") or not a.is_valid_ip_address():
-			continue
-		if a.begins_with("172.17."):
-			return a
 	var fallback = ""
 	for a in addrs:
 		if a.contains(":") or not a.is_valid_ip_address():
 			continue
 		if a.begins_with("127.") or a.begins_with("169."):
 			continue
-		if a.begins_with("192.168.56.") or a.begins_with("192.168.137."):
+		if a.begins_with("172.17.") or a.begins_with("192.168.56.") or a.begins_with("192.168.137."):
 			continue
 		if a.begins_with("172."):
 			if fallback.is_empty():
