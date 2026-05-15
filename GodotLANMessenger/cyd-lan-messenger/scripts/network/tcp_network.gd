@@ -92,7 +92,7 @@ func _send_or_queue_message(receiver_id: String, data: String) -> void:
 		return
 	var clear_data = data.to_utf8_buffer()
 	var cipher_data = clear_data
-	if _crypto:
+	if _crypto and receiver_id != local_id:
 		cipher_data = _crypto.encrypt(receiver_id, clear_data)
 	if cipher_data.is_empty():
 		_queue_message(receiver_id, data)
@@ -226,7 +226,7 @@ func _on_receive_message(user_id: String, address: String, data: PackedByteArray
 			new_connection.emit(user_id, address)
 		_D.DatagramType.DT_Message:
 			var clear_data = cipher_data
-			if _crypto: clear_data = _crypto.decrypt(user_id, cipher_data)
+			if _crypto and user_id != local_id: clear_data = _crypto.decrypt(user_id, cipher_data)
 			if clear_data.is_empty():
 				print("CydLAN: TCP received message but decrypt failed from ", _display_peer_id(user_id))
 				return

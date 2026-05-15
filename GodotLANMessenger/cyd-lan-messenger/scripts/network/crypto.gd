@@ -99,10 +99,49 @@ func _rsa_oaep_encrypt_with_powershell(user_id: String, public_key_path: String,
 	print("CydLAN: Crypto used local PowerShell OAEP")
 	return encrypted
 
+func _rsa_oaep_decrypt_with_powershell(user_id: String, cipher_data: PackedByteArray) -> PackedByteArray:
+	var key_path = "user://privkey_" + user_id.md5_text() + ".pem"
+	_rsa.save(key_path, false)
+	var data_path = "user://session_key_cipher_" + user_id.md5_text() + ".bin"
+	var data_file = FileAccess.open(data_path, FileAccess.WRITE)
+	if not data_file:
+		return PackedByteArray()
+	data_file.store_buffer(cipher_data)
+	data_file.close()
+	var script_path = ProjectSettings.globalize_path("res://scripts/network/rsa_oaep_decrypt.ps1")
+	var output: Array = []
+	var args = [
+		"-NoProfile",
+		"-ExecutionPolicy",
+		"Bypass",
+		"-File",
+		script_path,
+		ProjectSettings.globalize_path(key_path),
+		ProjectSettings.globalize_path(data_path)
+	]
+	var exit_code = OS.execute("powershell.exe", args, output, true)
+	if exit_code != 0:
+		output.clear()
+		exit_code = OS.execute("pwsh", args, output, true)
+	DirAccess.remove_absolute(ProjectSettings.globalize_path(data_path))
+	DirAccess.remove_absolute(ProjectSettings.globalize_path(key_path))
+	if exit_code != 0 or output.is_empty():
+		print("CydLAN: Crypto PowerShell OAEP decrypt failed exit=", exit_code)
+		return PackedByteArray()
+	var b64 = "".join(output).strip_edges()
+	var decrypted = Marshalls.base64_to_raw(b64)
+	if decrypted == null:
+		return PackedByteArray()
+	print("CydLAN: Crypto used PowerShell OAEP decrypt")
+	return decrypted
+
 func retrieve_aes(user_id: String, encrypted: PackedByteArray) -> void:
 	print("CydLAN: Crypto retrieving AES for ", user_id, " encrypted bytes=", encrypted.size())
 	var crypto = Crypto.new()
 	var combined = crypto.decrypt(_rsa, encrypted)
+	if combined.size() < 48:
+		print("CydLAN: Crypto PKCS1 decrypt failed, trying OAEP decrypt via PowerShell")
+		combined = _rsa_oaep_decrypt_with_powershell(user_id, encrypted)
 	if combined.size() < 48:
 		print("CydLAN: Crypto RSA decrypt failed/short result bytes=", combined.size())
 		return
@@ -112,7 +151,7 @@ func retrieve_aes(user_id: String, encrypted: PackedByteArray) -> void:
 	_decrypt_map[user_id] = { "key": aes_key, "iv": aes_iv }
 
 func encrypt(user_id: String, clear_data: PackedByteArray) -> PackedByteArray:
-	var params = _encrypt_map.get(user_id, _encrypt_map.get(user_id, null))
+	var params = _encrypt_map.get(user_id, _decrypt_map.get(user_id, null))
 	if not params: return PackedByteArray()
 	var ctx = AESContext.new()
 	ctx.start(AESContext.MODE_CBC_ENCRYPT, params["key"], params["iv"])
