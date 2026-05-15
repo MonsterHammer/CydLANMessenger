@@ -99,8 +99,12 @@ func _change_status(code: String):
 	var clr = CLR_ST.get(code, CLR_GREEN)
 	_status_btn.add_theme_color_override("font_color", clr)
 	if _messaging:
-		var xml = XmlMessage.new(); xml.add_data(_D.XN_STATUS, code)
-		_messaging.send_message(_D.MessageType.MT_Status, _messaging.local_user.get("id", ""), xml)
+		_messaging.local_user["status"] = code
+		print("CydLAN: Status change to ", code, " user_list has ", _messaging.user_list.size(), " users")
+		for u in _messaging.user_list:
+			var xml = XmlMessage.new(); xml.add_data(_D.XN_STATUS, code)
+			print("CydLAN: Sending status to ", u.get("id", "???"))
+			_messaging.send_message(_D.MessageType.MT_Status, u["id"], xml)
 		var bxml = XmlMessage.new(); bxml.add_data(_D.XN_STATUS, code)
 		var sz = Message.add_header(_D.MessageType.MT_Status, 0, _messaging.local_user.get("id", ""), "", bxml)
 		if _messaging.network and _messaging.network.has_method("send_broadcast"):

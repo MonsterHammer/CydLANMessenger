@@ -120,6 +120,12 @@ func _receive_broadcast(pHeader, data: String) -> void:
 			_process_depart(msg)
 		_D.MessageType.MT_Broadcast:
 			_process_broadcast_msg(msg, msg.header(_D.XN_FROM))
+		_D.MessageType.MT_Status:
+			var uid = msg.header(_D.XN_FROM)
+			if uid.is_empty() or uid == _local_id(): return
+			var new_status = msg.data(_D.XN_STATUS)
+			_update_user(uid, "status", new_status)
+			user_status_changed.emit(uid, new_status)
 
 func _process_announce(pMessage: XmlMessage, address: String) -> void:
 	var user_id = pMessage.header(_D.XN_FROM)
