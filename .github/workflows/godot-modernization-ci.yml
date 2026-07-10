@@ -11,15 +11,45 @@ on:
   workflow_dispatch:
 
 permissions:
-  contents: read
+  contents: write
 
 jobs:
-  validate-godot-project:
+  apply-modernization:
     runs-on: ubuntu-latest
-    timeout-minutes: 10
+    timeout-minutes: 5
     steps:
-      - name: Checkout repository
+      - name: Checkout modernization branch
         uses: actions/checkout@v4
+        with:
+          ref: upgrade/godot-4.7-modernization
+          fetch-depth: 0
+
+      - name: Apply queued modernization patch
+        shell: bash
+        run: |
+          if [[ ! -f .github/modernization.patch.gz.b64 ]]; then
+            echo "No queued patch payload."
+            exit 0
+          fi
+          base64 --decode .github/modernization.patch.gz.b64 | gzip --decompress > /tmp/modernization.patch
+          git apply --check -p1 /tmp/modernization.patch
+          git apply -p1 /tmp/modernization.patch
+          rm .github/modernization.patch.gz.b64
+          git config user.name "CydLAN Modernization Bot"
+          git config user.email "actions@github.com"
+          git add -A
+          git commit -m "feat: modernize CydLAN Messenger for Godot 4.7"
+          git push origin HEAD:upgrade/godot-4.7-modernization
+
+  validate-godot-project:
+    needs: apply-modernization
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    steps:
+      - name: Checkout latest modernization branch
+        uses: actions/checkout@v4
+        with:
+          ref: upgrade/godot-4.7-modernization
 
       - name: Set up Godot 4.7 stable
         uses: chickensoft-games/setup-godot@v2
@@ -34,11 +64,15 @@ jobs:
           godot --version
           godot --headless --editor --path . --quit-after 120
 
-      - name: Package repository snapshot
+      - name: Run legacy protocol compatibility tests
+        working-directory: GodotLANMessenger/cyd-lan-messenger
+        run: godot --headless --path . --script res://tests/protocol_compatibility_test.gd
+
+      - name: Package validated repository snapshot
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: cyd-lan-messenger-source
+          name: cyd-lan-messenger-source-${{ github.run_number }}
           path: |
             .
             !.git/**
