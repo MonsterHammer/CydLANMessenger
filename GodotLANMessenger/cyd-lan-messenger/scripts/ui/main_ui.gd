@@ -135,6 +135,11 @@ func _setup_window() -> void:
 			DisplayServer.set_icon(image)
 
 func _apply_polished_theme() -> void:
+	var app_font: Font = load("res://Assets/Fonts/Inter/static/Inter_18pt-Regular.ttf") as Font
+	if app_font:
+		var app_theme := Theme.new()
+		app_theme.default_font = app_font
+		theme = app_theme
 	files_history.visible = false
 	var background := get_node("Background") as PanelContainer
 	background.add_theme_stylebox_override("panel", _style(C_BG, 10, C_BORDER, 1))
@@ -890,9 +895,15 @@ func _avatar_color(name: String) -> Color:
 
 func _load_avatar_texture(user_id: String, avatar_id := 0) -> Texture2D:
 	for path in _avatar_paths(user_id, avatar_id):
-		if FileAccess.file_exists(path):
+		if path.begins_with("res://"):
+			if ResourceLoader.exists(path):
+				var imported_texture: Texture2D = load(path) as Texture2D
+				if imported_texture:
+					return imported_texture
+		elif FileAccess.file_exists(path):
 			var image := Image.new()
-			if image.load(path) == OK: return ImageTexture.create_from_image(image)
+			if image.load(path) == OK:
+				return ImageTexture.create_from_image(image)
 	return null
 
 func _avatar_paths(user_id: String, avatar_id: int) -> Array[String]:

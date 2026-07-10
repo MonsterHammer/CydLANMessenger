@@ -30,7 +30,6 @@ enabled=PackedStringArray("res://addons/godot_mcp/plugin.cfg")
 
 [gui]
 
-theme/custom_font="res://Assets/Fonts/Inter/static/Inter_18pt-Regular.ttf"
 theme/default_font_multichannel_signed_distance_field=true
 
 [rendering]
