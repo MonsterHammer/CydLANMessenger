@@ -60,6 +60,7 @@ func _process(delta):
 		_timer -= delta
 		if _timer <= 0:
 			_on_timer_timeout()
+			_timer = _D.PROGRESS_TIMEOUT / 1000.0
 
 func _on_disconnected() -> void:
 	if _active:
@@ -67,7 +68,9 @@ func _on_disconnected() -> void:
 
 func _on_ready_read() -> void:
 	if not _active: return
-	var result = _socket.get_data(BUFFER_SIZE)
+	var available := _socket.get_available_bytes()
+	if available <= 0: return
+	var result = _socket.get_partial_data(mini(BUFFER_SIZE, available))
 	if result[0] != OK: return
 	var data = result[1] as PackedByteArray
 	if data.size() == 0: return
@@ -101,6 +104,7 @@ func _receive_file() -> void:
 	if _file:
 		_active = true
 		_timer = _D.PROGRESS_TIMEOUT / 1000.0
+		_last_position = 0
 	else:
 		_socket.disconnect_from_host()
 		progress_updated.emit(_D.FileMode.FM_Receive, _D.FileOp.FO_Error, type, id, peer_id, _file_path)

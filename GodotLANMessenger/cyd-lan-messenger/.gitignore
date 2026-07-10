@@ -1,3 +1,13 @@
-# Godot 4+ specific ignores
+# Godot generated files
 .godot/
-/android/
+*.tmp
+
+# Exported builds
+build/
+dist/
+exports/
+
+# Local settings and logs
+*.log
+.DS_Store
+Thumbs.db
