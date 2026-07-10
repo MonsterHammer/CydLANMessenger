@@ -32,17 +32,38 @@ jobs:
 
       - name: Import and validate project
         working-directory: GodotLANMessenger/cyd-lan-messenger
+        shell: bash
         run: |
+          mkdir -p tests/output
+          set -o pipefail
           godot --version
-          godot --headless --editor --path . --quit-after 120
+          godot --headless --editor --path . --quit-after 120 2>&1 | tee tests/output/import.log
+          ! grep -E "SCRIPT ERROR|Parse Error" tests/output/import.log
 
       - name: Run legacy protocol compatibility tests
         working-directory: GodotLANMessenger/cyd-lan-messenger
-        run: godot --headless --path . --script res://tests/protocol_compatibility_test.gd
+        shell: bash
+        run: |
+          set -o pipefail
+          godot --headless --path . --script res://tests/protocol_compatibility_test.gd 2>&1 | tee tests/output/protocol.log
+          ! grep -E "SCRIPT ERROR|Parse Error" tests/output/protocol.log
 
       - name: Render polished UI snapshot
         working-directory: GodotLANMessenger/cyd-lan-messenger
-        run: timeout 25s xvfb-run -a godot --path . --rendering-method gl_compatibility --script res://tests/ui_snapshot_test.gd
+        shell: bash
+        run: |
+          set -o pipefail
+          timeout 25s xvfb-run -a godot --path . --rendering-method gl_compatibility --script res://tests/ui_snapshot_test.gd 2>&1 | tee tests/output/ui_snapshot.log
+          ! grep -E "SCRIPT ERROR|Parse Error" tests/output/ui_snapshot.log
+
+      - name: Upload Godot runtime logs
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: cydlan-runtime-logs-${{ github.run_number }}
+          path: GodotLANMessenger/cyd-lan-messenger/tests/output/*.log
+          if-no-files-found: error
+          retention-days: 7
 
       - name: Upload UI snapshot
         if: always()
