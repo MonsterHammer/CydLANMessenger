@@ -128,9 +128,9 @@ func _setup_window() -> void:
 	DisplayServer.window_set_flag(DisplayServer.WINDOW_FLAG_BORDERLESS, true)
 	var screen_size := DisplayServer.screen_get_size()
 	DisplayServer.window_set_position(Vector2i((screen_size.x - window.size.x) / 2, (screen_size.y - window.size.y) / 2))
-	var texture := load("res://icon.svg")
+	var texture: Texture2D = load("res://icon.svg") as Texture2D
 	if texture:
-		var image := texture.get_image()
+		var image: Image = texture.get_image()
 		if image:
 			DisplayServer.set_icon(image)
 
