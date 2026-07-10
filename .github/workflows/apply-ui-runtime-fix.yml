@@ -1,0 +1,34 @@
+name: Apply UI Runtime Fix
+
+on:
+  push:
+    branches:
+      - upgrade/godot-4.7-modernization
+    paths:
+      - ".github/ui-runtime-fix.ready"
+
+permissions:
+  contents: write
+
+jobs:
+  apply-fix:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout branch
+        uses: actions/checkout@v4
+        with:
+          ref: upgrade/godot-4.7-modernization
+          fetch-depth: 0
+
+      - name: Apply verified patch
+        shell: bash
+        run: |
+          base64 --decode .github/ui-runtime-fix.patch.gz.b64 | gzip --decompress > /tmp/ui-runtime-fix.patch
+          git apply --check -p1 /tmp/ui-runtime-fix.patch
+          git apply -p1 /tmp/ui-runtime-fix.patch
+          rm -f .github/ui-runtime-fix.ready .github/ui-runtime-fix.patch.gz.b64
+          git config user.name "CydLAN Modernization Bot"
+          git config user.email "actions@github.com"
+          git add -A
+          git commit -m "fix: load polished UI under Godot 4.7"
+          git push origin HEAD:upgrade/godot-4.7-modernization
