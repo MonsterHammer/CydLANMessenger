@@ -64,6 +64,7 @@ func _process(delta):
 		_timer -= delta
 		if _timer <= 0:
 			_on_timer_timeout()
+			_timer = _D.PROGRESS_TIMEOUT / 1000.0
 
 func _on_disconnected() -> void:
 	if _active:

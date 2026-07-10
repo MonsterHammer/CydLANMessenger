@@ -1,0 +1,104 @@
+name: Godot 4.7 Modernization CI
+
+on:
+  push:
+    branches:
+      - upgrade/godot-4.7-modernization
+  pull_request:
+    paths:
+      - "GodotLANMessenger/cyd-lan-messenger/**"
+      - ".github/workflows/godot-modernization-ci.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  validate-godot-project:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - name: Checkout modernization branch
+        uses: actions/checkout@v4
+        with:
+          ref: upgrade/godot-4.7-modernization
+
+      - name: Set up Godot 4.7 stable
+        uses: chickensoft-games/setup-godot@v2
+        with:
+          version: 4.7.0
+          use-dotnet: false
+          include-templates: true
+
+      - name: Import and validate project
+        working-directory: GodotLANMessenger/cyd-lan-messenger
+        shell: bash
+        run: |
+          mkdir -p tests/output
+          set -o pipefail
+          godot --version
+          godot --headless --editor --path . --quit-after 120 2>&1 | tee tests/output/import.log
+          ! grep -E "SCRIPT ERROR|Parse Error" tests/output/import.log
+
+      - name: Run legacy protocol compatibility tests
+        working-directory: GodotLANMessenger/cyd-lan-messenger
+        shell: bash
+        run: |
+          set -o pipefail
+          godot --headless --path . --script res://tests/protocol_compatibility_test.gd 2>&1 | tee tests/output/protocol.log
+          ! grep -E "SCRIPT ERROR|Parse Error" tests/output/protocol.log
+
+      - name: Render polished UI snapshot
+        working-directory: GodotLANMessenger/cyd-lan-messenger
+        shell: bash
+        run: |
+          set -o pipefail
+          timeout 25s xvfb-run -a godot --path . --rendering-method gl_compatibility --script res://tests/ui_snapshot_test.gd 2>&1 | tee tests/output/ui_snapshot.log
+          ! grep -E "SCRIPT ERROR|Parse Error" tests/output/ui_snapshot.log
+
+      - name: Export Windows desktop release
+        working-directory: GodotLANMessenger/cyd-lan-messenger
+        shell: bash
+        run: |
+          mkdir -p build/windows
+          set -o pipefail
+          godot --headless --path . --export-release "Windows Desktop" build/windows/CydLANMessenger.exe 2>&1 | tee tests/output/export.log
+          ! grep -E "SCRIPT ERROR|Parse Error|Export failed" tests/output/export.log
+          test -s build/windows/CydLANMessenger.exe
+
+      - name: Upload Windows release
+        uses: actions/upload-artifact@v4
+        with:
+          name: CydLANMessenger-Windows-${{ github.run_number }}
+          path: GodotLANMessenger/cyd-lan-messenger/build/windows/*
+          if-no-files-found: error
+          retention-days: 14
+
+      - name: Upload Godot runtime logs
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: cydlan-runtime-logs-${{ github.run_number }}
+          path: GodotLANMessenger/cyd-lan-messenger/tests/output/*.log
+          if-no-files-found: error
+          retention-days: 7
+
+      - name: Upload UI snapshot
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: cydlan-ui-snapshot-${{ github.run_number }}
+          path: GodotLANMessenger/cyd-lan-messenger/tests/output/ui_snapshot.png
+          if-no-files-found: error
+          retention-days: 7
+
+      - name: Package validated repository snapshot
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: cyd-lan-messenger-source-${{ github.run_number }}
+          path: |
+            .
+            !.git/**
+          include-hidden-files: true
+          retention-days: 3
