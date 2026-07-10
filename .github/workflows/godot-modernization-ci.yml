@@ -27,14 +27,23 @@ jobs:
       - name: Apply queued modernization patch
         shell: bash
         run: |
-          if [[ ! -f .github/modernization.patch.gz.b64 ]]; then
-            echo "No queued patch payload."
+          if [[ ! -f .github/modernization.patch.ready ]]; then
+            echo "No complete modernization payload queued."
             exit 0
           fi
-          base64 --decode .github/modernization.patch.gz.b64 | gzip --decompress > /tmp/modernization.patch
+
+          shopt -s nullglob
+          parts=(.github/modernization.patch.gz.b64.part*)
+          if (( ${#parts[@]} == 0 )); then
+            echo "Ready marker exists but payload parts are missing."
+            exit 1
+          fi
+
+          cat "${parts[@]}" > /tmp/modernization.patch.gz.b64
+          base64 --decode /tmp/modernization.patch.gz.b64 | gzip --decompress > /tmp/modernization.patch
           git apply --check -p1 /tmp/modernization.patch
           git apply -p1 /tmp/modernization.patch
-          rm .github/modernization.patch.gz.b64
+          rm -f .github/modernization.patch.ready .github/modernization.patch.gz.b64.part*
           git config user.name "CydLAN Modernization Bot"
           git config user.email "actions@github.com"
           git add -A
