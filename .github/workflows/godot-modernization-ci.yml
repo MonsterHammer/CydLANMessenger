@@ -42,7 +42,7 @@ jobs:
 
       - name: Render polished UI snapshot
         working-directory: GodotLANMessenger/cyd-lan-messenger
-        run: xvfb-run -a godot --path . --rendering-method gl_compatibility --script res://tests/ui_snapshot_test.gd
+        run: timeout 25s xvfb-run -a godot --path . --rendering-method gl_compatibility --script res://tests/ui_snapshot_test.gd
 
       - name: Upload UI snapshot
         if: always()
