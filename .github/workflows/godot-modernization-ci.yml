@@ -1,0 +1,46 @@
+name: Godot 4.7 Modernization CI
+
+on:
+  push:
+    branches:
+      - upgrade/godot-4.7-modernization
+  pull_request:
+    paths:
+      - "GodotLANMessenger/cyd-lan-messenger/**"
+      - ".github/workflows/godot-modernization-ci.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  validate-godot-project:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Godot 4.7 stable
+        uses: chickensoft-games/setup-godot@v2
+        with:
+          version: 4.7.0
+          use-dotnet: false
+          include-templates: false
+
+      - name: Import and validate project
+        working-directory: GodotLANMessenger/cyd-lan-messenger
+        run: |
+          godot --version
+          godot --headless --editor --path . --quit-after 120
+
+      - name: Package repository snapshot
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: cyd-lan-messenger-source
+          path: |
+            .
+            !.git/**
+          include-hidden-files: true
+          retention-days: 3
