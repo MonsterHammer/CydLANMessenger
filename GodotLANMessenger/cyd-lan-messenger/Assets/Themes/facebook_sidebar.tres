@@ -1,0 +1,11 @@
+[gd_resource type="StyleBoxFlat" format=3 uid="uid://facebook_sidebar"]
+
+[resource]
+bg_color = Color(1.0, 1.0, 1.0, 1)  /* Pure white for sidebar */
+border_width_right = 1
+border_color = Color(0.80, 0.83, 0.88, 1)  /* Light gray border */
+border_blend = true
+corner_radius_top_left = 0
+corner_radius_top_right = 0
+corner_radius_bottom_right = 0
+corner_radius_bottom_left = 0

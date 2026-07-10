@@ -1,6 +1,8 @@
 [gd_scene format=3 uid="uid://ywmunqxcq43t"]
 
 [ext_resource type="Script" uid="uid://bdf3evhw2464h" path="res://SubScenes/chat_bubbles.gd" id="1_qtmyb"]
+[ext_resource type="StyleBox" uid="uid://facebook_bubble_sent" path="res://Assets/Themes/facebook_bubble_sent.tres" id="1_sent"]
+[ext_resource type="StyleBox" uid="uid://facebook_bubble_received" path="res://Assets/Themes/facebook_bubble_received.tres" id="2_received"]
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_fl78x"]
 content_margin_left = 8.0
@@ -18,20 +20,23 @@ custom_minimum_size = Vector2(100, 50)
 theme_override_styles/panel = SubResource("StyleBoxFlat_fl78x")
 script = ExtResource("1_qtmyb")
 
-[node name="BoxHeader" type="VBoxContainer" parent="." unique_id=753122423]
+[node name="BoxHeader" type="HBoxContainer" parent="." unique_id=753122423]
 layout_mode = 2
+theme_override_constants/separation = 8
 
 [node name="LabelChat2" type="Label" parent="BoxHeader" unique_id=1028984086]
 layout_mode = 2
+size_flags_horizontal = 3
 size_flags_vertical = 3
 theme_override_font_sizes/font_size = 12
 text = "This is a sample chat"
+theme_override_colors/font_color = Color(0.9, 0.9, 0.9, 1)
 
 [node name="LabelTime" type="Label" parent="BoxHeader" unique_id=247464054]
 custom_minimum_size = Vector2(50, 15)
 layout_mode = 2
-size_flags_horizontal = 8
-size_flags_vertical = 8
+size_flags_horizontal = 1
+size_flags_vertical = 1
 theme_override_colors/font_color = Color(1, 1, 1, 0.34901962)
 theme_override_font_sizes/font_size = 10
 text = "24:25"

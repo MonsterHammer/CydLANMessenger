@@ -6,10 +6,10 @@ const ChatBubbleScene = preload("res://SubScenes/ChatBubbles.tscn")
 const APP_TITLE := "CydLAN Messenger"
 const TRAY_MENU_SHOW := 1; const TRAY_MENU_QUIT := 2
 const CTX_MSG := 10; const CTX_INFO := 11; const CTX_FILE := 12; const CTX_BCAST := 13
-const CLR_PRIMARY := Color("#fab283"); const CLR_BUBBLE_SENT := Color("#fab283")
-const CLR_BUBBLE_RECV := Color("#303030"); const CLR_TEXT := Color("#e0e0e0")
-const CLR_GREEN := Color("#7fd88f"); const CLR_ACTIVE := Color("#303030")
-const CLR_ST := {"chat": Color("#7fd88f"),"busy": Color("#e06c75"),"dnd": Color("#e06c75"),"brb": Color("#f5a742"),"away": Color("#f5a742"),"gone": Color("#6a6a6a")}
+const CLR_PRIMARY := Color("#1877f2"); const CLR_BUBBLE_SENT := Color("#e7f3ff")
+const CLR_BUBBLE_RECV := Color("#ffffff"); const CLR_TEXT := Color("#050505")
+const CLR_GREEN := Color("#42b72a"); const CLR_ACTIVE := Color("#1877f2")
+const CLR_ST := {"chat": Color("#42b72a"),"busy": Color("#e4a61a"),"dnd": Color("#e4a61a"),"brb": Color("#ff8a00"),"away": Color("#ff8a00"),"gone": Color("#8a8d91")}
 const ST_NAMES := {"chat":"Online","busy":"Busy","dnd":"Do Not Disturb","brb":"Be Right Back","away":"Away","gone":"Offline"}
 const ST_CODES := ["chat","busy","dnd","brb","away","gone"]
 const SMILEYS := {":)":"😊",":D":"😄",":(":"😢",";)":"😉",":p":"😋",":P":"😋",":o":"😮",":O":"😮",":/":"😕",":|":"😐",":'(":"😢",":')":"😂","<3":"❤️","</3":"💔","^^":"😊",":*)":"😳","%-)":"🤔","B)":"😎","8)":"😎",":-?":"🤔"}

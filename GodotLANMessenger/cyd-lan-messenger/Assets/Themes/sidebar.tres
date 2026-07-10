@@ -1,8 +1,8 @@
 [gd_resource type="StyleBoxFlat" format=3 uid="uid://bcibmwd3y5rvm"]
 
 [resource]
-bg_color = Color(0.07058824, 0.07058824, 0.07058824, 1)
+bg_color = Color(0.082, 0.086, 0.094, 1)  /* Same as background for seamless look */
 border_width_right = 1
-border_color = Color(0.15686275, 0.15686275, 0.15686275, 1)
+border_color = Color(0.15, 0.18, 0.22, 1)  /* Matching border color */
 border_blend = true
-corner_radius_bottom_left = 4
+corner_radius_bottom_left = 8
