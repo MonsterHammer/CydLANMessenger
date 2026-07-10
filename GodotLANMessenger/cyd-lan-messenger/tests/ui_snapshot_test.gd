@@ -3,15 +3,14 @@ extends SceneTree
 const OUTPUT_PATH := "res://tests/output/ui_snapshot.png"
 
 var _main = null
-var _finished := false
+var _frame_count := 0
+var _exit_code := 0
 
-func _init() -> void:
-	call_deferred("_setup_preview")
-
-func _setup_preview() -> void:
+func _initialize() -> void:
 	var packed: PackedScene = load("res://scenes/main.tscn")
 	if not packed:
-		_finish_with_error("Unable to load the main scene")
+		push_error("Unable to load the main scene")
+		_exit_code = 1
 		return
 
 	_main = packed.instantiate()
@@ -57,32 +56,25 @@ func _setup_preview() -> void:
 	_main.call("_add_bubble", "Great — encrypted messaging and file transfer are ready.", true, "You", "10:42")
 	_main.call("_add_bubble", "This interface is much cleaner now 😊", false, "Alice", "10:42")
 
-	# Signals keep the coroutine state alive without relying on an awaited method
-	# invoked through call_deferred, which can be discarded by the main loop.
-	create_timer(0.8).timeout.connect(_capture_snapshot)
-	create_timer(8.0).timeout.connect(_on_capture_timeout)
+func _process(_delta: float) -> bool:
+	if _exit_code != 0:
+		return true
+	_frame_count += 1
+	if _frame_count < 20:
+		return false
 
-func _capture_snapshot() -> void:
-	if _finished:
-		return
 	var output_dir := ProjectSettings.globalize_path("res://tests/output")
 	DirAccess.make_dir_recursive_absolute(output_dir)
+	RenderingServer.force_draw(true)
 	var image := root.get_texture().get_image()
 	var error := image.save_png(ProjectSettings.globalize_path(OUTPUT_PATH))
 	if error != OK:
-		_finish_with_error("Unable to save UI snapshot: %s" % error_string(error))
-		return
-	_finished = true
-	print("Saved rendered UI snapshot to ", OUTPUT_PATH)
-	quit(0)
+		push_error("Unable to save UI snapshot: %s" % error_string(error))
+		_exit_code = 1
+	else:
+		print("Saved rendered UI snapshot to ", OUTPUT_PATH)
+	return true
 
-func _on_capture_timeout() -> void:
-	if not _finished:
-		_finish_with_error("UI snapshot timed out")
-
-func _finish_with_error(message: String) -> void:
-	if _finished:
-		return
-	_finished = true
-	push_error(message)
-	quit(1)
+func _finalize() -> void:
+	if _exit_code != 0:
+		OS.set_restart_on_exit(false)
