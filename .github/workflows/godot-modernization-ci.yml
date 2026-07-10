@@ -16,7 +16,7 @@ permissions:
 jobs:
   validate-godot-project:
     runs-on: ubuntu-latest
-    timeout-minutes: 15
+    timeout-minutes: 20
     steps:
       - name: Checkout modernization branch
         uses: actions/checkout@v4
@@ -28,7 +28,7 @@ jobs:
         with:
           version: 4.7.0
           use-dotnet: false
-          include-templates: false
+          include-templates: true
 
       - name: Import and validate project
         working-directory: GodotLANMessenger/cyd-lan-messenger
@@ -55,6 +55,24 @@ jobs:
           set -o pipefail
           timeout 25s xvfb-run -a godot --path . --rendering-method gl_compatibility --script res://tests/ui_snapshot_test.gd 2>&1 | tee tests/output/ui_snapshot.log
           ! grep -E "SCRIPT ERROR|Parse Error" tests/output/ui_snapshot.log
+
+      - name: Export Windows desktop release
+        working-directory: GodotLANMessenger/cyd-lan-messenger
+        shell: bash
+        run: |
+          mkdir -p build/windows
+          set -o pipefail
+          godot --headless --path . --export-release "Windows Desktop" build/windows/CydLANMessenger.exe 2>&1 | tee tests/output/export.log
+          ! grep -E "SCRIPT ERROR|Parse Error|Export failed" tests/output/export.log
+          test -s build/windows/CydLANMessenger.exe
+
+      - name: Upload Windows release
+        uses: actions/upload-artifact@v4
+        with:
+          name: CydLANMessenger-Windows-${{ github.run_number }}
+          path: GodotLANMessenger/cyd-lan-messenger/build/windows/*
+          if-no-files-found: error
+          retention-days: 14
 
       - name: Upload Godot runtime logs
         if: always()
