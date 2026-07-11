@@ -6,16 +6,17 @@ const _NetworkManager = preload("res://scripts/network/network_manager.gd")
 
 var messaging: Node = null
 
-func _ready():
+
+func _ready() -> void:
 	if Engine.is_editor_hint():
 		return
-	
+
 	messaging = _Messaging.new()
 	add_child(messaging)
 
-	var address = _get_ip_address()
-	var user_id = _make_user_id(address)
-	var avatar = _get_configured_avatar()
+	var address := _get_ip_address()
+	var user_id := _make_user_id(address)
+	var avatar := _get_configured_avatar()
 
 	messaging.local_user = {
 		"id": user_id,
@@ -24,12 +25,12 @@ func _ready():
 		"version": "1.2.39",
 		"status": "chat",
 		"avatar": avatar,
-		"group": "General",
+		"group": _D.GRP_DEFAULT,
 		"note": "",
-		"caps": _D.UserCap.UC_File | _D.UserCap.UC_Folder
+		"caps": _D.UserCap.UC_File | _D.UserCap.UC_GroupMessage | _D.UserCap.UC_Folder
 	}
 
-	var settings = {
+	var settings := {
 		"port": 50000,
 		"udp_port": 50000,
 		"tcp_port": 50000,
@@ -42,89 +43,75 @@ func _ready():
 	add_child(messaging.network)
 	messaging.network.set_local_id(user_id)
 	messaging.init_config(settings)
-	print("CydLAN: Starting with IP=", address, " user_id=", user_id, " multicast=", settings["multicast"], " ports=", settings["port"], "/", settings["tcp_port"])
-	_clear_stale_port_owner(int(settings["tcp_port"]))
+	print(
+		"CydLAN: Starting with IP=",
+		address,
+		" user_id=",
+		user_id,
+		" multicast=",
+		settings["multicast"],
+		" ports=",
+		settings["udp_port"],
+		"/",
+		settings["tcp_port"]
+	)
+	# Never kill another process that owns the LAN Messenger port. The old
+	# cleanup routine could terminate another Godot/editor instance and create
+	# an external restart loop. A bind conflict is now reported normally.
 	messaging.start()
 
-func _clear_stale_port_owner(port: int) -> void:
-	if OS.get_name() != "Windows":
-		return
-	var project_path = ProjectSettings.globalize_path("res://").rstrip("\\/")
-	var exe_path = OS.get_executable_path()
-	var script = """
-$port = %d
-$currentPid = %d
-$projectPath = '%s'
-$exePath = '%s'
-$owners = @()
-$owners += Get-NetTCPConnection -LocalPort $port -ErrorAction SilentlyContinue | Select-Object -ExpandProperty OwningProcess
-$owners += Get-NetUDPEndpoint -LocalPort $port -ErrorAction SilentlyContinue | Select-Object -ExpandProperty OwningProcess
-$owners | Sort-Object -Unique | ForEach-Object {
-	if ($_ -eq $currentPid) { return }
-	$p = Get-CimInstance Win32_Process -Filter "ProcessId=$_" -ErrorAction SilentlyContinue
-	if (-not $p) { return }
-	$cmd = [string]$p.CommandLine
-	$path = [string]$p.ExecutablePath
-	$isSameProject = $cmd.Contains($projectPath)
-	$isSameExecutable = ($path -eq $exePath)
-	if ($isSameProject -or $isSameExecutable) {
-		Stop-Process -Id $_ -Force
-		Write-Output "Stopped stale CydLAN process PID $_ on port $port"
-	}
-}
-""" % [port, OS.get_process_id(), project_path.replace("'", "''"), exe_path.replace("'", "''")]
-	var output: Array = []
-	var args = ["-NoProfile", "-ExecutionPolicy", "Bypass", "-Command", script]
-	var exit_code = OS.execute("powershell.exe", args, output, true)
-	if exit_code != 0:
-		output.clear()
-		exit_code = OS.execute("pwsh", args, output, true)
-	for line in output:
-		if not str(line).strip_edges().is_empty():
-			print("CydLAN: ", line)
+
+func _exit_tree() -> void:
+	if messaging and is_instance_valid(messaging):
+		messaging.stop()
+
 
 func _get_ip_address() -> String:
-	var addrs = IP.get_local_addresses()
-	var fallback = ""
-	for a in addrs:
-		if a.contains(":") or not a.is_valid_ip_address():
+	var fallback := ""
+	for address in IP.get_local_addresses():
+		if address.contains(":") or not address.is_valid_ip_address():
 			continue
-		if a.begins_with("127.") or a.begins_with("169."):
+		if address.begins_with("127.") or address.begins_with("169.254."):
 			continue
-		if a.begins_with("172.17.") or a.begins_with("192.168.56.") or a.begins_with("192.168.137."):
+		if address.begins_with("172.17."):
 			continue
-		if a.begins_with("172."):
+		if address.begins_with("192.168.56.") or address.begins_with("192.168.137."):
+			continue
+		if address.begins_with("172."):
 			if fallback.is_empty():
-				fallback = a
+				fallback = address
 			continue
-		return a
-	if not fallback.is_empty():
-		return fallback
-	return "127.0.0.1"
+		return address
+	return fallback if not fallback.is_empty() else "127.0.0.1"
+
 
 func _make_user_id(address: String) -> String:
+	# LAN Messenger IDs are stable, delimiter-free identifiers. Godot does not
+	# expose adapter MAC addresses, so preserve the existing compatible scheme.
 	return address.replace(".", "") + Helper.get_logon_name()
+
 
 func _get_configured_avatar() -> int:
 	for path in _avatar_config_paths():
 		if not FileAccess.file_exists(path):
 			continue
-		var file = FileAccess.open(path, FileAccess.READ)
+		var file := FileAccess.open(path, FileAccess.READ)
 		if not file:
 			continue
 		while not file.eof_reached():
-			var line = file.get_line().strip_edges()
+			var line := file.get_line().strip_edges()
 			if line.begins_with("Avatar="):
-				var value = line.trim_prefix("Avatar=").strip_edges()
+				var value := line.trim_prefix("Avatar=").strip_edges()
 				file.close()
 				return int(value) if value.is_valid_int() else 0
 		file.close()
 	return 0
 
+
 func _avatar_config_paths() -> Array[String]:
 	var paths: Array[String] = ["user://LAN Messenger.ini"]
 	if OS.get_name() == "Windows":
-		var app_data = OS.get_environment("APPDATA")
+		var app_data := OS.get_environment("APPDATA")
 		if not app_data.is_empty():
 			paths.append(app_data.path_join("LAN Messenger").path_join("LAN Messenger.ini"))
 	return paths
