@@ -1,0 +1,20 @@
+name: Godot Parse Check
+
+on:
+  push:
+    branches:
+      - debug/godot-47-parse
+
+jobs:
+  parse:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Download Godot 4.7
+        run: |
+          curl -fL -o godot.zip "https://github.com/godotengine/godot-builds/releases/download/4.7-stable/Godot_v4.7-stable_linux.x86_64.zip"
+          unzip -q godot.zip
+          chmod +x Godot_v4.7-stable_linux.x86_64
+      - name: Parse project in Godot
+        run: |
+          ./Godot_v4.7-stable_linux.x86_64 --headless --editor --path GodotLANMessenger/cyd-lan-messenger --quit-after 10 --verbose
