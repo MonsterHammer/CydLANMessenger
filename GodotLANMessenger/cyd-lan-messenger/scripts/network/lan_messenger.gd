@@ -98,14 +98,29 @@ func _get_configured_avatar() -> int:
 		var file := FileAccess.open(path, FileAccess.READ)
 		if not file:
 			continue
-		while not file.eof_reached():
-			var line := file.get_line().strip_edges()
+		var raw_data := file.get_buffer(file.get_length())
+		file.close()
+		var config_text := _extract_ascii_ini_text(raw_data)
+		for raw_line in config_text.split("\n"):
+			var line := str(raw_line).strip_edges()
 			if line.begins_with("Avatar="):
 				var value := line.trim_prefix("Avatar=").strip_edges()
-				file.close()
 				return int(value) if value.is_valid_int() else 0
-		file.close()
 	return 0
+
+
+func _extract_ascii_ini_text(raw_data: PackedByteArray) -> String:
+	# QSettings INI files on Windows may be UTF-8, UTF-16LE, or UTF-16BE.
+	# We only need ASCII keys and numeric values, so copy printable ASCII and
+	# line separators while dropping NUL/BOM bytes. This avoids asking Godot to
+	# decode UTF-16 data as UTF-8 and prevents "Unexpected NUL character" errors.
+	var normalized := PackedByteArray()
+	for byte_value in raw_data:
+		if byte_value == 9 or byte_value == 10 or byte_value == 13:
+			normalized.append(byte_value)
+		elif byte_value >= 32 and byte_value <= 126:
+			normalized.append(byte_value)
+	return normalized.get_string_from_ascii()
 
 
 func _avatar_config_paths() -> Array[String]:
