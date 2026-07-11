@@ -4,6 +4,9 @@ on:
   push:
     branches:
       - debug/godot-47-parse
+  pull_request:
+    branches:
+      - main
 
 jobs:
   parse:
