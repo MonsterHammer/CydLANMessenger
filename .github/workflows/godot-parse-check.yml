@@ -1,66 +1,21 @@
-name: Godot Parse Check
+name: Godot 4.7 Validation
 
 on:
   push:
     branches:
-      - debug/godot-47-parse
+      - main
   pull_request:
     branches:
       - main
 
 permissions:
-  contents: write
+  contents: read
 
 jobs:
-  parse:
+  validate:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-        with:
-          ref: ${{ github.event_name == 'push' && github.ref_name || github.event.pull_request.head.ref }}
-      - name: Apply Godot 4.7 parser fixes
-        run: |
-          python - <<'PY'
-          from pathlib import Path
-
-          root = Path('GodotLANMessenger/cyd-lan-messenger/scripts/network')
-          messaging = root / 'messaging.gd'
-          text = messaging.read_text(encoding='utf-8')
-
-          replacements = [
-              (
-                  '\t\t_D.MessageType.MT_Status:\n\t\t\tvar status := header["message"].data(_D.XN_STATUS)\n',
-                  '\t\t_D.MessageType.MT_Status:\n\t\t\tvar broadcast_message: XmlMessage = header["message"] as XmlMessage\n\t\t\tif not broadcast_message:\n\t\t\t\treturn\n\t\t\tvar status: String = broadcast_message.data(_D.XN_STATUS)\n',
-              ),
-              (
-                  '\tvar intended_for := header["message"].header(_D.XN_TO)\n',
-                  '\tvar direct_message: XmlMessage = header["message"] as XmlMessage\n\tif not direct_message:\n\t\treturn\n\tvar intended_for: String = direct_message.header(_D.XN_TO)\n',
-              ),
-              (
-                  '\tvar name := user.get("name", user_id) if not user.is_empty() else user_id\n',
-                  '\tvar name: String = str(user.get("name", user_id)) if not user.is_empty() else user_id\n',
-              ),
-              (
-                  '\tvar name := user.get("name", sender_id)\n',
-                  '\tvar name: String = str(user.get("name", sender_id))\n',
-              ),
-          ]
-          for old, new in replacements:
-              if old in text:
-                  text = text.replace(old, new)
-          messaging.write_text(text, encoding='utf-8', newline='\n')
-
-          stream = root / 'msg_stream.gd'
-          text = stream.read_text(encoding='utf-8')
-          text = text.replace('func is_connected() -> bool:', 'func is_socket_connected() -> bool:')
-          text = text.replace('not is_connected()', 'not is_socket_connected()')
-          stream.write_text(text, encoding='utf-8', newline='\n')
-
-          tcp = root / 'tcp_network.gd'
-          text = tcp.read_text(encoding='utf-8')
-          text = text.replace('existing.is_connected()', 'existing.is_socket_connected()')
-          tcp.write_text(text, encoding='utf-8', newline='\n')
-          PY
       - name: Download Godot 4.7
         run: |
           curl -fL -o godot.zip "https://github.com/godotengine/godot-builds/releases/download/4.7-stable/Godot_v4.7-stable_linux.x86_64.zip"
@@ -80,22 +35,11 @@ jobs:
           if [ "$import_status" -ne 0 ] || [ "$run_status" -ne 0 ] || [ -s godot-errors.log ]; then
             exit 1
           fi
-      - name: Commit validated fixes to debug branch
-        if: github.event_name == 'push'
-        run: |
-          if git diff --quiet; then
-            exit 0
-          fi
-          git config user.name "github-actions[bot]"
-          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add GodotLANMessenger/cyd-lan-messenger/scripts/network/messaging.gd GodotLANMessenger/cyd-lan-messenger/scripts/network/msg_stream.gd GodotLANMessenger/cyd-lan-messenger/scripts/network/tcp_network.gd
-          git commit -m "fix(godot): resolve Godot 4.7 parser errors"
-          git push origin HEAD:debug/godot-47-parse
-      - name: Upload Godot log
-        if: always()
+      - name: Upload Godot logs on failure
+        if: failure()
         uses: actions/upload-artifact@v4
         with:
-          name: godot-parse-log
+          name: godot-validation-log
           path: |
             godot.log
             godot-import.log
