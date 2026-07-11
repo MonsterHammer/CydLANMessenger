@@ -169,7 +169,10 @@ func _receive_broadcast(pHeader, data: String) -> void:
 		_D.MessageType.MT_Broadcast:
 			_process_broadcast_msg(header["message"], header["userId"])
 		_D.MessageType.MT_Status:
-			var status := header["message"].data(_D.XN_STATUS)
+			var broadcast_message: XmlMessage = header["message"] as XmlMessage
+			if not broadcast_message:
+				return
+			var status: String = broadcast_message.data(_D.XN_STATUS)
 			if _update_user(header["userId"], "status", status):
 				user_status_changed.emit(header["userId"], status)
 
@@ -195,7 +198,7 @@ func _process_broadcast_msg(pMessage: XmlMessage, user_id: String) -> void:
 	if body.is_empty():
 		body = pMessage.data(_D.XN_MESSAGE)
 	var user := get_user(user_id)
-	var name := user.get("name", user_id) if not user.is_empty() else user_id
+	var name: String = str(user.get("name", user_id)) if not user.is_empty() else user_id
 	message_received.emit(_D.MessageType.MT_Broadcast, user_id, name, body)
 
 
@@ -233,7 +236,10 @@ func _receive_message(pHeader, data: String) -> void:
 		push_warning("CydLAN: Rejected message with mismatched transport identity")
 		return
 	header["address"] = str(pHeader.get("address", ""))
-	var intended_for := header["message"].header(_D.XN_TO)
+	var direct_message: XmlMessage = header["message"] as XmlMessage
+	if not direct_message:
+		return
+	var intended_for: String = direct_message.header(_D.XN_TO)
 	if not intended_for.is_empty() and intended_for != _local_id():
 		return
 	_process_message(header["type"], header)
@@ -246,7 +252,7 @@ func _process_message(msg_type: int, pHeader: Dictionary) -> void:
 	var user_id: String = pHeader["userId"]
 	var address: String = pHeader.get("address", "")
 	var user := get_user(user_id)
-	var name := user.get("name", user_id) if not user.is_empty() else user_id
+	var name: String = str(user.get("name", user_id)) if not user.is_empty() else user_id
 
 	match msg_type:
 		_D.MessageType.MT_Message:
@@ -611,7 +617,7 @@ func _receive_progress(user_id: String, data: String) -> void:
 	if sender_id.is_empty():
 		sender_id = user_id
 	var user := get_user(sender_id)
-	var name := user.get("name", sender_id)
+	var name: String = str(user.get("name", sender_id))
 	if msg.data(_D.XN_FILETYPE) == _D.FileTypeNames[_D.FileType.FT_Avatar]:
 		_process_avatar_file(
 			sender_id, msg, msg.data(_D.XN_FILEID), msg.data(_D.XN_MODE), msg.data(_D.XN_FILEOP)

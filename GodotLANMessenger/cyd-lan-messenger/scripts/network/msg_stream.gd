@@ -61,14 +61,14 @@ func is_alive() -> bool:
 	return status == StreamPeerTCP.STATUS_CONNECTING or status == StreamPeerTCP.STATUS_CONNECTED
 
 
-func is_connected() -> bool:
+func is_socket_connected() -> bool:
 	return _socket != null and _socket.get_status() == StreamPeerTCP.STATUS_CONNECTED
 
 
 func send_message(data: PackedByteArray) -> void:
 	if data.is_empty():
 		return
-	if not is_connected():
+	if not is_socket_connected():
 		_send_queue.append(data.duplicate())
 		return
 	_send_framed(data)
@@ -121,7 +121,7 @@ func _on_connected() -> void:
 
 
 func _flush_send_queue() -> void:
-	if not is_connected():
+	if not is_socket_connected():
 		return
 	var queued := _send_queue
 	_send_queue = []

@@ -373,7 +373,7 @@ func _add_msg_socket(user_id: String, socket: StreamPeerTCP) -> void:
 	if _stream_is_usable(existing):
 		# Keep an already connected stream. This makes repeated announces and
 		# crossed connection attempts harmless instead of replacing live state.
-		if existing.is_connected():
+		if existing.is_socket_connected():
 			socket.disconnect_from_host()
 			return
 		existing.stop()
