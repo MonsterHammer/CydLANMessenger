@@ -18,15 +18,18 @@ jobs:
           curl -fL -o godot.zip "https://github.com/godotengine/godot-builds/releases/download/4.7-stable/Godot_v4.7-stable_linux.x86_64.zip"
           unzip -q godot.zip
           chmod +x Godot_v4.7-stable_linux.x86_64
-      - name: Parse project in Godot
+      - name: Import project and launch main scene
         shell: bash
         run: |
           set +e
-          ./Godot_v4.7-stable_linux.x86_64 --headless --editor --path GodotLANMessenger/cyd-lan-messenger --quit-after 10 --verbose 2>&1 | tee godot.log
-          godot_status=${PIPESTATUS[0]}
+          timeout 180 ./Godot_v4.7-stable_linux.x86_64 --headless --editor --path GodotLANMessenger/cyd-lan-messenger --import --verbose 2>&1 | tee godot-import.log
+          import_status=${PIPESTATUS[0]}
+          timeout 45 ./Godot_v4.7-stable_linux.x86_64 --headless --path GodotLANMessenger/cyd-lan-messenger --quit-after 5 --verbose 2>&1 | tee godot-run.log
+          run_status=${PIPESTATUS[0]}
+          cat godot-import.log godot-run.log > godot.log
           grep -Ei "SCRIPT ERROR|Parse Error|Parser Error|Failed to load script" godot.log > godot-errors.log || true
           cat godot-errors.log
-          if [ "$godot_status" -ne 0 ] || [ -s godot-errors.log ]; then
+          if [ "$import_status" -ne 0 ] || [ "$run_status" -ne 0 ] || [ -s godot-errors.log ]; then
             exit 1
           fi
       - name: Upload Godot log
@@ -36,4 +39,6 @@ jobs:
           name: godot-parse-log
           path: |
             godot.log
+            godot-import.log
+            godot-run.log
             godot-errors.log
