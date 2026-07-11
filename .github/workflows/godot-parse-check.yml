@@ -19,5 +19,21 @@ jobs:
           unzip -q godot.zip
           chmod +x Godot_v4.7-stable_linux.x86_64
       - name: Parse project in Godot
+        shell: bash
         run: |
-          ./Godot_v4.7-stable_linux.x86_64 --headless --editor --path GodotLANMessenger/cyd-lan-messenger --quit-after 10 --verbose
+          set +e
+          ./Godot_v4.7-stable_linux.x86_64 --headless --editor --path GodotLANMessenger/cyd-lan-messenger --quit-after 10 --verbose 2>&1 | tee godot.log
+          godot_status=${PIPESTATUS[0]}
+          grep -Ei "SCRIPT ERROR|Parse Error|Parser Error|Failed to load script" godot.log > godot-errors.log || true
+          cat godot-errors.log
+          if [ "$godot_status" -ne 0 ] || [ -s godot-errors.log ]; then
+            exit 1
+          fi
+      - name: Upload Godot log
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: godot-parse-log
+          path: |
+            godot.log
+            godot-errors.log
