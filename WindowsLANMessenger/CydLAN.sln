@@ -6,6 +6,12 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CydLAN.App", "CydLAN.App\Cy
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CydLAN.Protocol", "CydLAN.Protocol\CydLAN.Protocol.csproj", "{6AC1CC54-06A7-4D1A-86CF-723CFB142603}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CydLAN.Networking", "CydLAN.Networking\CydLAN.Networking.csproj", "{EF466C79-3BDC-4EFB-9B30-67A5D183350F}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CydLAN.Protocol.Tests", "CydLAN.Protocol.Tests\CydLAN.Protocol.Tests.csproj", "{2EB73E13-FCBD-4F9E-B336-F722197887EF}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CydLAN.Networking.Tests", "CydLAN.Networking.Tests\CydLAN.Networking.Tests.csproj", "{DFE18AE8-F55B-4FC1-931B-14C48D0FCB2C}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|x64 = Debug|x64
@@ -20,5 +26,17 @@ Global
 		{6AC1CC54-06A7-4D1A-86CF-723CFB142603}.Debug|x64.Build.0 = Debug|Any CPU
 		{6AC1CC54-06A7-4D1A-86CF-723CFB142603}.Release|x64.ActiveCfg = Release|Any CPU
 		{6AC1CC54-06A7-4D1A-86CF-723CFB142603}.Release|x64.Build.0 = Release|Any CPU
+		{EF466C79-3BDC-4EFB-9B30-67A5D183350F}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{EF466C79-3BDC-4EFB-9B30-67A5D183350F}.Debug|x64.Build.0 = Debug|Any CPU
+		{EF466C79-3BDC-4EFB-9B30-67A5D183350F}.Release|x64.ActiveCfg = Release|Any CPU
+		{EF466C79-3BDC-4EFB-9B30-67A5D183350F}.Release|x64.Build.0 = Release|Any CPU
+		{2EB73E13-FCBD-4F9E-B336-F722197887EF}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{2EB73E13-FCBD-4F9E-B336-F722197887EF}.Debug|x64.Build.0 = Debug|Any CPU
+		{2EB73E13-FCBD-4F9E-B336-F722197887EF}.Release|x64.ActiveCfg = Release|Any CPU
+		{2EB73E13-FCBD-4F9E-B336-F722197887EF}.Release|x64.Build.0 = Release|Any CPU
+		{DFE18AE8-F55B-4FC1-931B-14C48D0FCB2C}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{DFE18AE8-F55B-4FC1-931B-14C48D0FCB2C}.Debug|x64.Build.0 = Debug|Any CPU
+		{DFE18AE8-F55B-4FC1-931B-14C48D0FCB2C}.Release|x64.ActiveCfg = Release|Any CPU
+		{DFE18AE8-F55B-4FC1-931B-14C48D0FCB2C}.Release|x64.Build.0 = Release|Any CPU
 	EndGlobalSection
 EndGlobal
