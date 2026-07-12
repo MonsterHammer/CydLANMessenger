@@ -8,6 +8,7 @@ on:
       - 'WindowsLANMessenger/CydLAN.Protocol.Tests/**'
       - 'WindowsLANMessenger/CydLAN.Networking/**'
       - 'WindowsLANMessenger/CydLAN.Networking.Tests/**'
+      - 'WindowsLANMessenger/global.json'
       - '.github/workflows/windows-protocol-tests.yml'
   pull_request:
     paths:
@@ -15,20 +16,26 @@ on:
       - 'WindowsLANMessenger/CydLAN.Protocol.Tests/**'
       - 'WindowsLANMessenger/CydLAN.Networking/**'
       - 'WindowsLANMessenger/CydLAN.Networking.Tests/**'
+      - 'WindowsLANMessenger/global.json'
 
 jobs:
   tests:
     runs-on: windows-latest
+    defaults:
+      run:
+        working-directory: WindowsLANMessenger
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-dotnet@v4
         with:
           dotnet-version: '8.0.x'
+      - name: Verify SDK
+        run: dotnet --version
       - name: Restore protocol tests
-        run: dotnet restore WindowsLANMessenger/CydLAN.Protocol.Tests/CydLAN.Protocol.Tests.csproj
+        run: dotnet restore CydLAN.Protocol.Tests/CydLAN.Protocol.Tests.csproj
       - name: Run protocol tests
-        run: dotnet test WindowsLANMessenger/CydLAN.Protocol.Tests/CydLAN.Protocol.Tests.csproj --configuration Release --no-restore
+        run: dotnet test CydLAN.Protocol.Tests/CydLAN.Protocol.Tests.csproj --configuration Release --no-restore
       - name: Restore discovery tests
-        run: dotnet restore WindowsLANMessenger/CydLAN.Networking.Tests/CydLAN.Networking.Tests.csproj
+        run: dotnet restore CydLAN.Networking.Tests/CydLAN.Networking.Tests.csproj
       - name: Run discovery tests
-        run: dotnet test WindowsLANMessenger/CydLAN.Networking.Tests/CydLAN.Networking.Tests.csproj --configuration Release --no-restore
+        run: dotnet test CydLAN.Networking.Tests/CydLAN.Networking.Tests.csproj --configuration Release --no-restore
