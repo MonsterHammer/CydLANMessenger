@@ -1,0 +1,38 @@
+name: Capture Godot UI
+
+on:
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  capture:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y xvfb scrot unzip wget
+      - name: Download Godot
+        run: |
+          wget -q https://github.com/godotengine/godot/releases/download/4.6.3-stable/Godot_v4.6.3-stable_linux.x86_64.zip -O godot.zip
+          unzip -q godot.zip
+          chmod +x Godot_v4.6.3-stable_linux.x86_64
+      - name: Run project and capture screenshot
+        working-directory: GodotLANMessenger/cyd-lan-messenger
+        run: |
+          Xvfb :99 -screen 0 1280x800x24 > /tmp/xvfb.log 2>&1 &
+          export DISPLAY=:99
+          sleep 2
+          ../../Godot_v4.6.3-stable_linux.x86_64 --path . --editor --quit-after 8 > /tmp/godot-import.log 2>&1 || true
+          ../../Godot_v4.6.3-stable_linux.x86_64 --path . > /tmp/godot-run.log 2>&1 &
+          GODOT_PID=$!
+          sleep 10
+          scrot /tmp/cydlan-godot-actual.png
+          kill $GODOT_PID || true
+          cat /tmp/godot-import.log || true
+          cat /tmp/godot-run.log || true
+      - uses: actions/upload-artifact@v4
+        with:
+          name: cydlan-godot-actual-ui
+          path: /tmp/cydlan-godot-actual.png
