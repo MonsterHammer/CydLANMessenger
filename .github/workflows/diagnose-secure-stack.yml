@@ -1,0 +1,33 @@
+name: Diagnose Secure Windows Stack
+
+on:
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  diagnose:
+    runs-on: windows-latest
+    defaults:
+      run:
+        working-directory: WindowsLANMessenger
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '8.0.x'
+      - name: Capture networking tests
+        shell: pwsh
+        continue-on-error: true
+        run: dotnet test CydLAN.Networking.Tests/CydLAN.Networking.Tests.csproj --configuration Release *> networking-tests.log
+      - name: Capture native build
+        shell: pwsh
+        continue-on-error: true
+        run: dotnet build CydLAN.App/CydLAN.App.csproj --configuration Release -p:Platform=x64 -v:diag *> native-build.log
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: secure-stack-diagnostics
+          path: |
+            WindowsLANMessenger/networking-tests.log
+            WindowsLANMessenger/native-build.log
+            WindowsLANMessenger/CydLAN.App/obj/**/output.json
