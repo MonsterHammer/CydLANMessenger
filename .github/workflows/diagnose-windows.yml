@@ -1,0 +1,37 @@
+name: Diagnose Windows Native
+
+on:
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  diagnose:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '8.0.x'
+      - name: Capture protocol tests
+        shell: pwsh
+        continue-on-error: true
+        run: |
+          dotnet test WindowsLANMessenger/CydLAN.Protocol.Tests/CydLAN.Protocol.Tests.csproj --configuration Release *> protocol-tests.log
+      - name: Capture discovery tests
+        shell: pwsh
+        continue-on-error: true
+        run: |
+          dotnet test WindowsLANMessenger/CydLAN.Networking.Tests/CydLAN.Networking.Tests.csproj --configuration Release *> discovery-tests.log
+      - name: Capture native build
+        shell: pwsh
+        continue-on-error: true
+        run: |
+          dotnet build WindowsLANMessenger/CydLAN.App/CydLAN.App.csproj --configuration Release -p:Platform=x64 *> native-build.log
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: windows-diagnostics
+          path: |
+            protocol-tests.log
+            discovery-tests.log
+            native-build.log
