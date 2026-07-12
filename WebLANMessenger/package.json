@@ -1,0 +1,28 @@
+{
+  "name": "cydlan-web-desktop",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Windows-first CydLAN Messenger with a web UI and native LAN protocol backend.",
+  "main": "electron/main.js",
+  "scripts": {
+    "start": "electron .",
+    "dev": "electron .",
+    "build:win": "electron-builder --win nsis"
+  },
+  "devDependencies": {
+    "electron": "^37.2.0",
+    "electron-builder": "^26.0.12"
+  },
+  "build": {
+    "appId": "com.monsterhammer.cydlan",
+    "productName": "CydLAN Messenger",
+    "files": [
+      "electron/**/*",
+      "src/**/*",
+      "package.json"
+    ],
+    "win": {
+      "target": "nsis"
+    }
+  }
+}
