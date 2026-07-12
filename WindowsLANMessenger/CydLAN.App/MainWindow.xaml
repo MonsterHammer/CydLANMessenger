@@ -13,8 +13,8 @@
             <RowDefinition Height="*" />
         </Grid.RowDefinitions>
 
-        <Border Grid.Row="0" Background="#0A1422" BorderBrush="{StaticResource AppBorderBrush}" BorderThickness="0,0,0,1">
-            <Grid x:Name="AppTitleBar" Padding="20,0,150,0">
+        <Border x:Name="AppTitleBar" Grid.Row="0" Background="#0A1422" BorderBrush="{StaticResource AppBorderBrush}" BorderThickness="0,0,0,1" Padding="20,0,150,0">
+            <Grid>
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="360" />
                     <ColumnDefinition Width="*" />
