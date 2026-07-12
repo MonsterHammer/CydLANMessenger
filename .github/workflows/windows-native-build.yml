@@ -13,12 +13,17 @@ on:
 jobs:
   build:
     runs-on: windows-latest
+    defaults:
+      run:
+        working-directory: WindowsLANMessenger
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-dotnet@v4
         with:
           dotnet-version: '8.0.x'
+      - name: Verify SDK
+        run: dotnet --version
       - name: Restore native app
-        run: dotnet restore WindowsLANMessenger/CydLAN.App/CydLAN.App.csproj -p:Platform=x64
+        run: dotnet restore CydLAN.App/CydLAN.App.csproj -p:Platform=x64
       - name: Build native app
-        run: dotnet build WindowsLANMessenger/CydLAN.App/CydLAN.App.csproj --configuration Release --no-restore -p:Platform=x64
+        run: dotnet build CydLAN.App/CydLAN.App.csproj --configuration Release --no-restore -p:Platform=x64
