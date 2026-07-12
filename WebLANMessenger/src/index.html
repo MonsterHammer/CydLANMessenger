@@ -1,0 +1,55 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>CydLAN Messenger</title>
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <main class="app-shell">
+    <header class="titlebar">
+      <div class="brand"><span class="brand-mark">C</span><div><strong>CydLAN</strong><small>Messenger</small></div></div>
+      <div class="connection"><span class="status-dot"></span><div><strong>Connected to LAN</strong><small id="connection-detail">Starting legacy protocol…</small></div></div>
+      <div class="window-actions">
+        <button id="minimize" aria-label="Minimize">—</button>
+        <button id="maximize" aria-label="Maximize">□</button>
+        <button id="close" aria-label="Close">×</button>
+      </div>
+    </header>
+
+    <section class="workspace">
+      <nav class="rail" aria-label="Primary navigation">
+        <button class="active">▣</button><button>♙</button><button>□</button><button>◴</button><button>⚙</button>
+      </nav>
+
+      <aside class="contacts">
+        <div class="search-row"><input placeholder="Search users…" /><kbd>Ctrl+F</kbd></div>
+        <div class="filters"><button class="active">All 0</button><button>Online 0</button><button>Offline 0</button></div>
+        <div class="section-label">LAN USERS</div>
+        <div class="empty-list">Waiting for LANNIES clients on port 50000…</div>
+        <footer><span><i></i> 0 online</span><span>Protocol: LANNIES ✓</span></footer>
+      </aside>
+
+      <section class="chat">
+        <header>Select a conversation</header>
+        <div class="chat-empty">
+          <div class="message-icon">▰<br><span>▰</span></div>
+          <h1>Your conversations will appear here</h1>
+          <p>Select a user from the list to start chatting.</p>
+          <div class="capabilities"><span>LAN Fast</span><span>Private</span><span>Secure</span><span>Legacy Ready</span></div>
+        </div>
+        <div class="composer"><button>＋</button><input placeholder="Type a message…" disabled /><button class="send">➤</button></div>
+      </section>
+
+      <aside class="details">
+        <div class="tabs"><button class="active">Files</button><button>History</button></div>
+        <section><h2>Shared Files</h2><p>Files shared in the selected conversation will appear here.</p></section>
+        <section class="history"><h2>Chat History</h2><p>Local history remains available offline.</p></section>
+        <section class="network"><span class="status-dot"></span> LAN connection active<br><small>Port 50000 ready</small></section>
+      </aside>
+    </section>
+  </main>
+  <script src="renderer.js"></script>
+</body>
+</html>
