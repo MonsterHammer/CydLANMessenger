@@ -1,5 +1,6 @@
 using System.Text;
 using CydLAN.Protocol;
+using Xunit;
 
 namespace CydLAN.Protocol.Tests;
 
