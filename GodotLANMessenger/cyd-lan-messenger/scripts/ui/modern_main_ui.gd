@@ -8,6 +8,7 @@ func _ready() -> void:
 	super()
 	no_chat_label.visible = false
 	empty_state.visible = true
+	_apply_reference_flattening()
 	_update_user_count()
 	_update_connection_detail()
 
@@ -26,6 +27,70 @@ func _setup_window() -> void:
 		var image = app_icon.get_image()
 		if image:
 			DisplayServer.set_icon(image)
+
+func _apply_reference_flattening() -> void:
+	# Match the approved reference: restrained radii, flat surfaces, thin separators.
+	_set_panel_style($Background, Color("#07101d"), Color("#1b2a3f"), 6, 1)
+	_set_panel_style(%TitleBar, Color("#0a1422"), Color("#1b2a3f"), 4, 1)
+	_set_panel_style(%LeftSidebar, Color("#0a1422"), Color("#1b2a3f"), 0, 1)
+	_set_panel_style(%ChatView, Color("#07111f"), Color.TRANSPARENT, 0, 0)
+	_set_panel_style(%FilesHistory, Color("#0a1422"), Color("#1b2a3f"), 0, 1)
+	_set_panel_style(%ChatHeader, Color("#0a1422"), Color("#1b2a3f"), 0, 1)
+	_set_panel_style(%InputPanel, Color("#0d1928"), Color("#22344d"), 5, 1)
+
+	for node in get_tree().get_nodes_in_group("cydlan_flat_card"):
+		if node is PanelContainer:
+			_set_panel_style(node, Color("#0c1726"), Color("#1d2d44"), 5, 1)
+
+	for path in [
+		"Background/VBoxContainer/BodyHBox/LeftSidebar/SidebarVBox/SidebarFooter",
+		"Background/VBoxContainer/BodyHBox/FilesHistory/RightVBox/SharedCard",
+		"Background/VBoxContainer/BodyHBox/FilesHistory/RightVBox/HistoryCard",
+		"Background/VBoxContainer/BodyHBox/FilesHistory/RightVBox/SecurityCard"
+	]:
+		var card := get_node_or_null(path)
+		if card is PanelContainer:
+			_set_panel_style(card, Color("#0c1726"), Color("#1d2d44"), 5, 1)
+
+	var brand := get_node_or_null("Background/VBoxContainer/TitleBar/TitleHBox/BrandBadge")
+	if brand is PanelContainer:
+		_set_panel_style(brand, Color("#185ee8"), Color("#2b72f2"), 5, 1)
+
+	var empty_badge := get_node_or_null("Background/VBoxContainer/BodyHBox/ChatView/VBoxContainer/EmptyState/EmptyVBox/BadgeCenter/EmptyBadge")
+	if empty_badge is PanelContainer:
+		_set_panel_style(empty_badge, Color("#0c1a2d"), Color("#264064"), 8, 1)
+
+	_flatten_button(%SearchRefreshBtn, 4)
+	_flatten_button(%MinimizeBtn, 3)
+	_flatten_button(%MaximizeBtn, 3)
+	_flatten_button(%CloseBtn, 3)
+	_flatten_button(%SendButton, 5, Color("#185ee8"))
+
+func _set_panel_style(control: Control, background: Color, border: Color, radius: int, border_width: int) -> void:
+	var style := StyleBoxFlat.new()
+	style.bg_color = background
+	style.set_corner_radius_all(radius)
+	style.border_width_left = border_width
+	style.border_width_top = border_width
+	style.border_width_right = border_width
+	style.border_width_bottom = border_width
+	style.border_color = border
+	style.shadow_size = 0
+	control.add_theme_stylebox_override("panel", style)
+
+func _flatten_button(button: Button, radius: int, background: Color = Color.TRANSPARENT) -> void:
+	var normal := StyleBoxFlat.new()
+	normal.bg_color = background
+	normal.set_corner_radius_all(radius)
+	var hover := StyleBoxFlat.new()
+	hover.bg_color = Color("#12233a") if background == Color.TRANSPARENT else background.lightened(0.08)
+	hover.set_corner_radius_all(radius)
+	var pressed := StyleBoxFlat.new()
+	pressed.bg_color = Color("#182c47") if background == Color.TRANSPARENT else background.darkened(0.08)
+	pressed.set_corner_radius_all(radius)
+	button.add_theme_stylebox_override("normal", normal)
+	button.add_theme_stylebox_override("hover", hover)
+	button.add_theme_stylebox_override("pressed", pressed)
 
 func _update_connection_detail() -> void:
 	var shown_ip := "Local network"
@@ -54,14 +119,14 @@ func _create_user_item(uid: String, display_name: String) -> Button:
 	var button := super(uid, display_name)
 	button.custom_minimum_size.y = 58
 	var normal := StyleBoxFlat.new()
-	normal.bg_color = Color(0.045, 0.065, 0.102, 0.0)
-	normal.set_corner_radius_all(9)
+	normal.bg_color = Color.TRANSPARENT
+	normal.set_corner_radius_all(4)
 	var hover := StyleBoxFlat.new()
-	hover.bg_color = Color(0.07, 0.105, 0.165, 1.0)
-	hover.set_corner_radius_all(9)
+	hover.bg_color = Color("#101f33")
+	hover.set_corner_radius_all(4)
 	var pressed := StyleBoxFlat.new()
-	pressed.bg_color = Color(0.085, 0.16, 0.31, 1.0)
-	pressed.set_corner_radius_all(9)
+	pressed.bg_color = Color("#142a48")
+	pressed.set_corner_radius_all(4)
 	button.add_theme_stylebox_override("normal", normal)
 	button.add_theme_stylebox_override("hover", hover)
 	button.add_theme_stylebox_override("pressed", pressed)
