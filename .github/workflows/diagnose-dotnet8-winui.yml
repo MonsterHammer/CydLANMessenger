@@ -1,0 +1,32 @@
+name: Diagnose .NET 8 WinUI
+
+on:
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  diagnose:
+    runs-on: windows-latest
+    defaults:
+      run:
+        working-directory: WindowsLANMessenger
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '8.0.x'
+      - name: Capture native build diagnostics
+        shell: pwsh
+        continue-on-error: true
+        run: |
+          dotnet --version *> sdk.log
+          dotnet build CydLAN.App/CydLAN.App.csproj --configuration Release -p:Platform=x64 -v:diag *> native-build.log
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: dotnet8-winui-diagnostics
+          path: |
+            WindowsLANMessenger/sdk.log
+            WindowsLANMessenger/native-build.log
+            WindowsLANMessenger/CydLAN.App/obj/**/input.json
+            WindowsLANMessenger/CydLAN.App/obj/**/output.json
