@@ -1,0 +1,24 @@
+name: Windows Native Build
+
+on:
+  push:
+    branches: [ main ]
+    paths:
+      - 'WindowsLANMessenger/**'
+      - '.github/workflows/windows-native-build.yml'
+  pull_request:
+    paths:
+      - 'WindowsLANMessenger/**'
+
+jobs:
+  build:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '8.0.x'
+      - name: Restore native app
+        run: dotnet restore WindowsLANMessenger/CydLAN.App/CydLAN.App.csproj -p:Platform=x64
+      - name: Build native app
+        run: dotnet build WindowsLANMessenger/CydLAN.App/CydLAN.App.csproj --configuration Release --no-restore -p:Platform=x64
