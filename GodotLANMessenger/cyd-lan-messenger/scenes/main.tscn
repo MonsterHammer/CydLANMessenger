@@ -1,67 +1,63 @@
-[gd_scene load_steps=17 format=3 uid="uid://b4hqkcpcoa542"]
+[gd_scene load_steps=15 format=3 uid="uid://b4hqkcpcoa542"]
 
-[ext_resource type="Script" uid="uid://cmdw3sb1soyk0" path="res://scripts/ui/main_ui.gd" id="1_script"]
-[ext_resource type="Texture2D" uid="uid://dlashfwx0lcph" path="res://Assets/Logo/Logo.png" id="2_logo"]
-[ext_resource type="Texture2D" uid="uid://bqdrgyrkfi18b" path="res://Assets/NavIcons/Subtract.png" id="3_min"]
-[ext_resource type="Texture2D" uid="uid://bxjm8atj70r0k" path="res://Assets/NavIcons/Stop.png" id="4_max"]
-[ext_resource type="Texture2D" uid="uid://b07jvrvolk7ri" path="res://Assets/NavIcons/Close.png" id="5_close"]
+[ext_resource type="Script" path="res://scripts/ui/modern_main_ui.gd" id="1_script"]
 
 [sub_resource type="StyleBoxFlat" id="WindowBackground"]
-bg_color = Color(0.031, 0.047, 0.075, 1)
+bg_color = Color(0.024, 0.037, 0.061, 1)
 border_width_left = 1
 border_width_top = 1
 border_width_right = 1
 border_width_bottom = 1
-border_color = Color(0.12, 0.18, 0.28, 1)
-corner_radius_top_left = 12
-corner_radius_top_right = 12
-corner_radius_bottom_right = 12
-corner_radius_bottom_left = 12
-shadow_color = Color(0, 0, 0, 0.28)
-shadow_size = 12
+border_color = Color(0.12, 0.19, 0.3, 1)
+corner_radius_top_left = 14
+corner_radius_top_right = 14
+corner_radius_bottom_right = 14
+corner_radius_bottom_left = 14
+shadow_color = Color(0, 0, 0, 0.35)
+shadow_size = 14
 
 [sub_resource type="StyleBoxFlat" id="TitleBarStyle"]
-bg_color = Color(0.038, 0.058, 0.092, 1)
+bg_color = Color(0.033, 0.051, 0.083, 1)
 border_width_bottom = 1
-border_color = Color(0.11, 0.16, 0.24, 1)
-corner_radius_top_left = 12
-corner_radius_top_right = 12
+border_color = Color(0.105, 0.16, 0.25, 1)
+corner_radius_top_left = 14
+corner_radius_top_right = 14
 
 [sub_resource type="StyleBoxFlat" id="SidebarStyle"]
-bg_color = Color(0.038, 0.058, 0.092, 1)
+bg_color = Color(0.032, 0.05, 0.081, 1)
 border_width_right = 1
-border_color = Color(0.11, 0.16, 0.24, 1)
+border_color = Color(0.105, 0.16, 0.25, 1)
 
 [sub_resource type="StyleBoxFlat" id="CenterStyle"]
-bg_color = Color(0.026, 0.041, 0.067, 1)
+bg_color = Color(0.02, 0.032, 0.052, 1)
 
 [sub_resource type="StyleBoxFlat" id="RightStyle"]
-bg_color = Color(0.038, 0.058, 0.092, 1)
+bg_color = Color(0.032, 0.05, 0.081, 1)
 border_width_left = 1
-border_color = Color(0.11, 0.16, 0.24, 1)
+border_color = Color(0.105, 0.16, 0.25, 1)
 
 [sub_resource type="StyleBoxFlat" id="HeaderStyle"]
-bg_color = Color(0.038, 0.058, 0.092, 0.96)
+bg_color = Color(0.032, 0.05, 0.081, 0.98)
 border_width_bottom = 1
-border_color = Color(0.11, 0.16, 0.24, 1)
-content_margin_left = 14.0
-content_margin_right = 14.0
-content_margin_top = 8.0
-content_margin_bottom = 8.0
+border_color = Color(0.105, 0.16, 0.25, 1)
+content_margin_left = 16.0
+content_margin_right = 16.0
+content_margin_top = 10.0
+content_margin_bottom = 10.0
 
 [sub_resource type="StyleBoxFlat" id="SearchStyle"]
-bg_color = Color(0.055, 0.079, 0.12, 1)
+bg_color = Color(0.048, 0.073, 0.113, 1)
 border_width_left = 1
 border_width_top = 1
 border_width_right = 1
 border_width_bottom = 1
-border_color = Color(0.12, 0.18, 0.28, 1)
-corner_radius_top_left = 8
-corner_radius_top_right = 8
-corner_radius_bottom_right = 8
-corner_radius_bottom_left = 8
-content_margin_left = 11.0
-content_margin_right = 9.0
+border_color = Color(0.13, 0.2, 0.32, 1)
+corner_radius_top_left = 9
+corner_radius_top_right = 9
+corner_radius_bottom_right = 9
+corner_radius_bottom_left = 9
+content_margin_left = 12.0
+content_margin_right = 10.0
 
 [sub_resource type="StyleBoxFlat" id="InputStyle"]
 bg_color = Color(0.043, 0.064, 0.1, 1)
@@ -69,61 +65,77 @@ border_width_left = 1
 border_width_top = 1
 border_width_right = 1
 border_width_bottom = 1
-border_color = Color(0.12, 0.18, 0.28, 1)
-corner_radius_top_left = 10
-corner_radius_top_right = 10
-corner_radius_bottom_right = 10
-corner_radius_bottom_left = 10
-content_margin_left = 12.0
+border_color = Color(0.13, 0.2, 0.32, 1)
+corner_radius_top_left = 12
+corner_radius_top_right = 12
+corner_radius_bottom_right = 12
+corner_radius_bottom_left = 12
+content_margin_left = 10.0
 content_margin_top = 8.0
 content_margin_right = 8.0
 content_margin_bottom = 8.0
 
 [sub_resource type="StyleBoxFlat" id="SendStyle"]
-bg_color = Color(0.095, 0.38, 0.95, 1)
-corner_radius_top_left = 9
-corner_radius_top_right = 9
-corner_radius_bottom_right = 9
-corner_radius_bottom_left = 9
+bg_color = Color(0.09, 0.36, 0.95, 1)
+corner_radius_top_left = 10
+corner_radius_top_right = 10
+corner_radius_bottom_right = 10
+corner_radius_bottom_left = 10
+shadow_color = Color(0.06, 0.25, 0.8, 0.35)
+shadow_size = 5
 
-[sub_resource type="StyleBoxFlat" id="IconButtonStyle"]
+[sub_resource type="StyleBoxFlat" id="IconNormal"]
 bg_color = Color(0, 0, 0, 0)
 corner_radius_top_left = 7
 corner_radius_top_right = 7
 corner_radius_bottom_right = 7
 corner_radius_bottom_left = 7
 
-[sub_resource type="StyleBoxFlat" id="IconButtonHover"]
-bg_color = Color(0.075, 0.105, 0.16, 1)
+[sub_resource type="StyleBoxFlat" id="IconHover"]
+bg_color = Color(0.075, 0.11, 0.17, 1)
 corner_radius_top_left = 7
 corner_radius_top_right = 7
 corner_radius_bottom_right = 7
 corner_radius_bottom_left = 7
 
 [sub_resource type="StyleBoxFlat" id="CardStyle"]
-bg_color = Color(0.05, 0.072, 0.11, 1)
+bg_color = Color(0.045, 0.067, 0.105, 1)
 border_width_left = 1
 border_width_top = 1
 border_width_right = 1
 border_width_bottom = 1
-border_color = Color(0.12, 0.18, 0.28, 1)
+border_color = Color(0.12, 0.19, 0.3, 1)
+corner_radius_top_left = 10
+corner_radius_top_right = 10
+corner_radius_bottom_right = 10
+corner_radius_bottom_left = 10
+content_margin_left = 12.0
+content_margin_top = 11.0
+content_margin_right = 12.0
+content_margin_bottom = 11.0
+
+[sub_resource type="StyleBoxFlat" id="BrandBadge"]
+bg_color = Color(0.08, 0.34, 0.94, 1)
 corner_radius_top_left = 9
 corner_radius_top_right = 9
 corner_radius_bottom_right = 9
 corner_radius_bottom_left = 9
-content_margin_left = 10.0
-content_margin_top = 8.0
-content_margin_right = 10.0
-content_margin_bottom = 8.0
+shadow_color = Color(0.05, 0.3, 1, 0.35)
+shadow_size = 5
+
+[sub_resource type="StyleBoxFlat" id="EmptyBadge"]
+bg_color = Color(0.055, 0.085, 0.14, 1)
+border_width_left = 1
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 1
+border_color = Color(0.14, 0.25, 0.44, 1)
+corner_radius_top_left = 26
+corner_radius_top_right = 26
+corner_radius_bottom_right = 26
+corner_radius_bottom_left = 26
 
 [sub_resource type="StyleBoxEmpty" id="EmptyStyle"]
-
-[sub_resource type="StyleBoxFlat" id="AvatarStyle"]
-bg_color = Color(0.18, 0.35, 0.72, 1)
-corner_radius_top_left = 18
-corner_radius_top_right = 18
-corner_radius_bottom_right = 18
-corner_radius_bottom_left = 18
 
 [node name="Main" type="Control"]
 layout_mode = 3
@@ -149,7 +161,7 @@ theme_override_constants/separation = 0
 
 [node name="TitleBar" type="Panel" parent="Background/VBoxContainer"]
 unique_name_in_owner = true
-custom_minimum_size = Vector2(0, 42)
+custom_minimum_size = Vector2(0, 58)
 layout_mode = 2
 theme_override_styles/panel = SubResource("TitleBarStyle")
 
@@ -158,51 +170,64 @@ layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
-offset_left = 10.0
-offset_right = -6.0
+offset_left = 14.0
+offset_right = -8.0
 grow_horizontal = 2
 grow_vertical = 2
-theme_override_constants/separation = 8
+theme_override_constants/separation = 11
 
-[node name="Brand" type="HBoxContainer" parent="Background/VBoxContainer/TitleBar/TitleHBox"]
-layout_mode = 2
-theme_override_constants/separation = 8
-
-[node name="LogoRect" type="TextureRect" parent="Background/VBoxContainer/TitleBar/TitleHBox/Brand"]
-custom_minimum_size = Vector2(27, 27)
+[node name="BrandBadge" type="PanelContainer" parent="Background/VBoxContainer/TitleBar/TitleHBox"]
+custom_minimum_size = Vector2(36, 36)
 layout_mode = 2
 size_flags_vertical = 4
-texture = ExtResource("2_logo")
-expand_mode = 1
-stretch_mode = 5
+theme_override_styles/panel = SubResource("BrandBadge")
 
-[node name="BrandVBox" type="VBoxContainer" parent="Background/VBoxContainer/TitleBar/TitleHBox/Brand"]
+[node name="BrandLetter" type="Label" parent="Background/VBoxContainer/TitleBar/TitleHBox/BrandBadge"]
+layout_mode = 2
+theme_override_colors/font_color = Color(1, 1, 1, 1)
+theme_override_font_sizes/font_size = 18
+text = "C"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="BrandVBox" type="VBoxContainer" parent="Background/VBoxContainer/TitleBar/TitleHBox"]
 layout_mode = 2
 size_flags_vertical = 4
 theme_override_constants/separation = -2
 
-[node name="TitleLabel" type="Label" parent="Background/VBoxContainer/TitleBar/TitleHBox/Brand/BrandVBox"]
+[node name="TitleLabel" type="Label" parent="Background/VBoxContainer/TitleBar/TitleHBox/BrandVBox"]
 layout_mode = 2
 theme_override_colors/font_color = Color(0.95, 0.97, 1, 1)
-theme_override_font_sizes/font_size = 13
+theme_override_font_sizes/font_size = 15
 text = "CydLAN"
 
-[node name="Subtitle" type="Label" parent="Background/VBoxContainer/TitleBar/TitleHBox/Brand/BrandVBox"]
+[node name="Subtitle" type="Label" parent="Background/VBoxContainer/TitleBar/TitleHBox/BrandVBox"]
 layout_mode = 2
-theme_override_colors/font_color = Color(0.48, 0.58, 0.72, 1)
+theme_override_colors/font_color = Color(0.47, 0.58, 0.75, 1)
 theme_override_font_sizes/font_size = 9
-text = "LAN Messenger"
+text = "LOCAL NETWORK MESSENGER"
 
-[node name="ConnectionDivider" type="VSeparator" parent="Background/VBoxContainer/TitleBar/TitleHBox"]
-custom_minimum_size = Vector2(16, 0)
+[node name="Divider" type="VSeparator" parent="Background/VBoxContainer/TitleBar/TitleHBox"]
+custom_minimum_size = Vector2(18, 0)
 layout_mode = 2
 
-[node name="ConnectionStatus" type="Label" parent="Background/VBoxContainer/TitleBar/TitleHBox"]
+[node name="ConnectionVBox" type="VBoxContainer" parent="Background/VBoxContainer/TitleBar/TitleHBox"]
 layout_mode = 2
 size_flags_vertical = 4
-theme_override_colors/font_color = Color(0.35, 0.83, 0.52, 1)
+theme_override_constants/separation = -2
+
+[node name="ConnectionStatus" type="Label" parent="Background/VBoxContainer/TitleBar/TitleHBox/ConnectionVBox"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.3, 0.87, 0.5, 1)
 theme_override_font_sizes/font_size = 11
 text = "●  Connected to LAN"
+
+[node name="ConnectionDetail" type="Label" parent="Background/VBoxContainer/TitleBar/TitleHBox/ConnectionVBox"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_colors/font_color = Color(0.4, 0.5, 0.66, 1)
+theme_override_font_sizes/font_size = 9
+text = "Local network  •  Legacy protocol ready"
 
 [node name="TitleSpacer" type="Control" parent="Background/VBoxContainer/TitleBar/TitleHBox"]
 layout_mode = 2
@@ -210,76 +235,47 @@ size_flags_horizontal = 3
 
 [node name="WindowButtons" type="HBoxContainer" parent="Background/VBoxContainer/TitleBar/TitleHBox"]
 layout_mode = 2
+size_flags_vertical = 4
 theme_override_constants/separation = 2
 
 [node name="MinimizeBtn" type="Button" parent="Background/VBoxContainer/TitleBar/TitleHBox/WindowButtons"]
 unique_name_in_owner = true
-custom_minimum_size = Vector2(34, 30)
+custom_minimum_size = Vector2(38, 32)
 layout_mode = 2
-theme_override_styles/normal = SubResource("IconButtonStyle")
-theme_override_styles/hover = SubResource("IconButtonHover")
+theme_override_colors/font_color = Color(0.65, 0.73, 0.86, 1)
+theme_override_font_sizes/font_size = 15
+theme_override_styles/normal = SubResource("IconNormal")
+theme_override_styles/hover = SubResource("IconHover")
+text = "—"
 
 [node name="TextureRect" type="TextureRect" parent="Background/VBoxContainer/TitleBar/TitleHBox/WindowButtons/MinimizeBtn"]
-layout_mode = 1
-anchors_preset = 8
-anchor_left = 0.5
-anchor_top = 0.5
-anchor_right = 0.5
-anchor_bottom = 0.5
-offset_left = -8.0
-offset_top = -8.0
-offset_right = 8.0
-offset_bottom = 8.0
-grow_horizontal = 2
-grow_vertical = 2
-texture = ExtResource("3_min")
-expand_mode = 1
+visible = false
 
 [node name="MaximizeBtn" type="Button" parent="Background/VBoxContainer/TitleBar/TitleHBox/WindowButtons"]
 unique_name_in_owner = true
-custom_minimum_size = Vector2(34, 30)
+custom_minimum_size = Vector2(38, 32)
 layout_mode = 2
-theme_override_styles/normal = SubResource("IconButtonStyle")
-theme_override_styles/hover = SubResource("IconButtonHover")
+theme_override_colors/font_color = Color(0.65, 0.73, 0.86, 1)
+theme_override_font_sizes/font_size = 14
+theme_override_styles/normal = SubResource("IconNormal")
+theme_override_styles/hover = SubResource("IconHover")
+text = "□"
 
 [node name="TextureRect" type="TextureRect" parent="Background/VBoxContainer/TitleBar/TitleHBox/WindowButtons/MaximizeBtn"]
-layout_mode = 1
-anchors_preset = 8
-anchor_left = 0.5
-anchor_top = 0.5
-anchor_right = 0.5
-anchor_bottom = 0.5
-offset_left = -8.0
-offset_top = -8.0
-offset_right = 8.0
-offset_bottom = 8.0
-grow_horizontal = 2
-grow_vertical = 2
-texture = ExtResource("4_max")
-expand_mode = 1
+visible = false
 
 [node name="CloseBtn" type="Button" parent="Background/VBoxContainer/TitleBar/TitleHBox/WindowButtons"]
 unique_name_in_owner = true
-custom_minimum_size = Vector2(34, 30)
+custom_minimum_size = Vector2(38, 32)
 layout_mode = 2
-theme_override_styles/normal = SubResource("IconButtonStyle")
-theme_override_styles/hover = SubResource("IconButtonHover")
+theme_override_colors/font_color = Color(0.75, 0.58, 0.65, 1)
+theme_override_font_sizes/font_size = 17
+theme_override_styles/normal = SubResource("IconNormal")
+theme_override_styles/hover = SubResource("IconHover")
+text = "×"
 
 [node name="TextureRect" type="TextureRect" parent="Background/VBoxContainer/TitleBar/TitleHBox/WindowButtons/CloseBtn"]
-layout_mode = 1
-anchors_preset = 8
-anchor_left = 0.5
-anchor_top = 0.5
-anchor_right = 0.5
-anchor_bottom = 0.5
-offset_left = -8.0
-offset_top = -8.0
-offset_right = 8.0
-offset_bottom = 8.0
-grow_horizontal = 2
-grow_vertical = 2
-texture = ExtResource("5_close")
-expand_mode = 1
+visible = false
 
 [node name="BodyHBox" type="HBoxContainer" parent="Background/VBoxContainer"]
 layout_mode = 2
@@ -288,7 +284,7 @@ theme_override_constants/separation = 0
 
 [node name="LeftSidebar" type="Panel" parent="Background/VBoxContainer/BodyHBox"]
 unique_name_in_owner = true
-custom_minimum_size = Vector2(210, 0)
+custom_minimum_size = Vector2(255, 0)
 layout_mode = 2
 theme_override_styles/panel = SubResource("SidebarStyle")
 
@@ -297,26 +293,26 @@ layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
-offset_left = 10.0
-offset_top = 10.0
-offset_right = -10.0
-offset_bottom = -10.0
+offset_left = 13.0
+offset_top = 14.0
+offset_right = -13.0
+offset_bottom = -12.0
 grow_horizontal = 2
 grow_vertical = 2
-theme_override_constants/separation = 8
+theme_override_constants/separation = 10
 
 [node name="SearchHBox" type="HBoxContainer" parent="Background/VBoxContainer/BodyHBox/LeftSidebar/SidebarVBox"]
-custom_minimum_size = Vector2(0, 32)
+custom_minimum_size = Vector2(0, 38)
 layout_mode = 2
-theme_override_constants/separation = 5
+theme_override_constants/separation = 6
 
 [node name="SearchInput" type="LineEdit" parent="Background/VBoxContainer/BodyHBox/LeftSidebar/SidebarVBox/SearchHBox"]
 unique_name_in_owner = true
 layout_mode = 2
 size_flags_horizontal = 3
-theme_override_colors/font_color = Color(0.86, 0.9, 0.97, 1)
-theme_override_colors/font_placeholder_color = Color(0.42, 0.5, 0.64, 1)
-theme_override_colors/caret_color = Color(0.22, 0.53, 1, 1)
+theme_override_colors/font_color = Color(0.88, 0.92, 0.98, 1)
+theme_override_colors/font_placeholder_color = Color(0.42, 0.52, 0.68, 1)
+theme_override_colors/caret_color = Color(0.25, 0.56, 1, 1)
 theme_override_font_sizes/font_size = 11
 theme_override_styles/normal = SubResource("SearchStyle")
 theme_override_styles/focus = SubResource("SearchStyle")
@@ -325,19 +321,20 @@ caret_blink = true
 
 [node name="SearchRefreshBtn" type="Button" parent="Background/VBoxContainer/BodyHBox/LeftSidebar/SidebarVBox/SearchHBox"]
 unique_name_in_owner = true
-custom_minimum_size = Vector2(30, 30)
+custom_minimum_size = Vector2(36, 36)
 layout_mode = 2
-theme_override_colors/font_color = Color(0.46, 0.6, 0.82, 1)
-theme_override_font_sizes/font_size = 15
-theme_override_styles/normal = SubResource("IconButtonStyle")
-theme_override_styles/hover = SubResource("IconButtonHover")
+theme_override_colors/font_color = Color(0.48, 0.64, 0.9, 1)
+theme_override_font_sizes/font_size = 16
+theme_override_styles/normal = SubResource("IconNormal")
+theme_override_styles/hover = SubResource("IconHover")
 text = "↻"
 
 [node name="UsersLabel" type="Label" parent="Background/VBoxContainer/BodyHBox/LeftSidebar/SidebarVBox"]
+unique_name_in_owner = true
 layout_mode = 2
-theme_override_colors/font_color = Color(0.48, 0.58, 0.72, 1)
+theme_override_colors/font_color = Color(0.47, 0.58, 0.75, 1)
 theme_override_font_sizes/font_size = 10
-text = "LAN USERS"
+text = "LAN USERS  •  0 FOUND"
 
 [node name="UserScroll" type="ScrollContainer" parent="Background/VBoxContainer/BodyHBox/LeftSidebar/SidebarVBox"]
 layout_mode = 2
@@ -348,13 +345,27 @@ horizontal_scroll_mode = 0
 unique_name_in_owner = true
 layout_mode = 2
 size_flags_horizontal = 3
-theme_override_constants/separation = 4
+theme_override_constants/separation = 5
 
-[node name="SidebarFooter" type="Label" parent="Background/VBoxContainer/BodyHBox/LeftSidebar/SidebarVBox"]
+[node name="SidebarFooter" type="PanelContainer" parent="Background/VBoxContainer/BodyHBox/LeftSidebar/SidebarVBox"]
 layout_mode = 2
-theme_override_colors/font_color = Color(0.34, 0.45, 0.63, 1)
+theme_override_styles/panel = SubResource("CardStyle")
+
+[node name="FooterVBox" type="VBoxContainer" parent="Background/VBoxContainer/BodyHBox/LeftSidebar/SidebarVBox/SidebarFooter"]
+layout_mode = 2
+theme_override_constants/separation = 2
+
+[node name="ProtocolLabel" type="Label" parent="Background/VBoxContainer/BodyHBox/LeftSidebar/SidebarVBox/SidebarFooter/FooterVBox"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.34, 0.82, 0.52, 1)
+theme_override_font_sizes/font_size = 10
+text = "✓ LANNIES compatible"
+
+[node name="ProtocolHint" type="Label" parent="Background/VBoxContainer/BodyHBox/LeftSidebar/SidebarVBox/SidebarFooter/FooterVBox"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.4, 0.5, 0.66, 1)
 theme_override_font_sizes/font_size = 9
-text = "Protocol: LANNIES compatible"
+text = "Old LAN Messenger clients supported"
 
 [node name="ChatView" type="PanelContainer" parent="Background/VBoxContainer/BodyHBox"]
 unique_name_in_owner = true
@@ -369,17 +380,17 @@ theme_override_constants/separation = 0
 
 [node name="ChatHeader" type="PanelContainer" parent="Background/VBoxContainer/BodyHBox/ChatView/VBoxContainer"]
 unique_name_in_owner = true
-custom_minimum_size = Vector2(0, 54)
+custom_minimum_size = Vector2(0, 64)
 layout_mode = 2
 theme_override_styles/panel = SubResource("HeaderStyle")
 
 [node name="ChatHeaderHBox" type="HBoxContainer" parent="Background/VBoxContainer/BodyHBox/ChatView/VBoxContainer/ChatHeader"]
 layout_mode = 2
-theme_override_constants/separation = 10
+theme_override_constants/separation = 11
 
 [node name="ChatAvatar" type="ColorRect" parent="Background/VBoxContainer/BodyHBox/ChatView/VBoxContainer/ChatHeader/ChatHeaderHBox"]
 unique_name_in_owner = true
-custom_minimum_size = Vector2(36, 36)
+custom_minimum_size = Vector2(40, 40)
 layout_mode = 2
 size_flags_vertical = 4
 color = Color(0.18, 0.35, 0.72, 1)
@@ -393,35 +404,35 @@ theme_override_constants/separation = -2
 [node name="ChatUserName" type="Label" parent="Background/VBoxContainer/BodyHBox/ChatView/VBoxContainer/ChatHeader/ChatHeaderHBox/ChatNameVBox"]
 unique_name_in_owner = true
 layout_mode = 2
-theme_override_colors/font_color = Color(0.94, 0.96, 1, 1)
-theme_override_font_sizes/font_size = 13
+theme_override_colors/font_color = Color(0.95, 0.97, 1, 1)
+theme_override_font_sizes/font_size = 14
 text = "Select a user"
 
 [node name="ChatStatus" type="Label" parent="Background/VBoxContainer/BodyHBox/ChatView/VBoxContainer/ChatHeader/ChatHeaderHBox/ChatNameVBox"]
 unique_name_in_owner = true
 layout_mode = 2
-theme_override_colors/font_color = Color(0.35, 0.83, 0.52, 1)
+theme_override_colors/font_color = Color(0.34, 0.84, 0.51, 1)
 theme_override_font_sizes/font_size = 10
 
 [node name="HeaderActions" type="HBoxContainer" parent="Background/VBoxContainer/BodyHBox/ChatView/VBoxContainer/ChatHeader/ChatHeaderHBox"]
 layout_mode = 2
 size_flags_vertical = 4
-theme_override_constants/separation = 2
+theme_override_constants/separation = 3
 
 [node name="SearchAction" type="Button" parent="Background/VBoxContainer/BodyHBox/ChatView/VBoxContainer/ChatHeader/ChatHeaderHBox/HeaderActions"]
-custom_minimum_size = Vector2(30, 30)
+custom_minimum_size = Vector2(34, 34)
 layout_mode = 2
-theme_override_colors/font_color = Color(0.52, 0.64, 0.84, 1)
-theme_override_styles/normal = SubResource("IconButtonStyle")
-theme_override_styles/hover = SubResource("IconButtonHover")
+theme_override_colors/font_color = Color(0.53, 0.66, 0.88, 1)
+theme_override_styles/normal = SubResource("IconNormal")
+theme_override_styles/hover = SubResource("IconHover")
 text = "⌕"
 
 [node name="MoreAction" type="Button" parent="Background/VBoxContainer/BodyHBox/ChatView/VBoxContainer/ChatHeader/ChatHeaderHBox/HeaderActions"]
-custom_minimum_size = Vector2(30, 30)
+custom_minimum_size = Vector2(34, 34)
 layout_mode = 2
-theme_override_colors/font_color = Color(0.52, 0.64, 0.84, 1)
-theme_override_styles/normal = SubResource("IconButtonStyle")
-theme_override_styles/hover = SubResource("IconButtonHover")
+theme_override_colors/font_color = Color(0.53, 0.66, 0.88, 1)
+theme_override_styles/normal = SubResource("IconNormal")
+theme_override_styles/hover = SubResource("IconHover")
 text = "•••"
 
 [node name="MessageScroll" type="ScrollContainer" parent="Background/VBoxContainer/BodyHBox/ChatView/VBoxContainer"]
@@ -435,53 +446,97 @@ unique_name_in_owner = true
 layout_mode = 2
 size_flags_horizontal = 3
 size_flags_vertical = 3
-theme_override_constants/separation = 6
+theme_override_constants/separation = 7
 
-[node name="NoChatLabel" type="Label" parent="Background/VBoxContainer/BodyHBox/ChatView/VBoxContainer"]
+[node name="EmptyState" type="CenterContainer" parent="Background/VBoxContainer/BodyHBox/ChatView/VBoxContainer"]
 unique_name_in_owner = true
 layout_mode = 2
 size_flags_vertical = 3
-theme_override_colors/font_color = Color(0.38, 0.47, 0.61, 1)
-theme_override_font_sizes/font_size = 12
-text = "Select a conversation\nYour messages stay inside the local network."
+
+[node name="EmptyVBox" type="VBoxContainer" parent="Background/VBoxContainer/BodyHBox/ChatView/VBoxContainer/EmptyState"]
+custom_minimum_size = Vector2(360, 0)
+layout_mode = 2
+theme_override_constants/separation = 10
+
+[node name="BadgeCenter" type="CenterContainer" parent="Background/VBoxContainer/BodyHBox/ChatView/VBoxContainer/EmptyState/EmptyVBox"]
+layout_mode = 2
+
+[node name="EmptyBadge" type="PanelContainer" parent="Background/VBoxContainer/BodyHBox/ChatView/VBoxContainer/EmptyState/EmptyVBox/BadgeCenter"]
+custom_minimum_size = Vector2(52, 52)
+layout_mode = 2
+theme_override_styles/panel = SubResource("EmptyBadge")
+
+[node name="EmptyIcon" type="Label" parent="Background/VBoxContainer/BodyHBox/ChatView/VBoxContainer/EmptyState/EmptyVBox/BadgeCenter/EmptyBadge"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.28, 0.58, 1, 1)
+theme_override_font_sizes/font_size = 22
+text = "✦"
 horizontal_alignment = 1
 vertical_alignment = 1
 
+[node name="EmptyTitle" type="Label" parent="Background/VBoxContainer/BodyHBox/ChatView/VBoxContainer/EmptyState/EmptyVBox"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.91, 0.94, 1, 1)
+theme_override_font_sizes/font_size = 19
+text = "Ready for your local network"
+horizontal_alignment = 1
+
+[node name="EmptyDescription" type="Label" parent="Background/VBoxContainer/BodyHBox/ChatView/VBoxContainer/EmptyState/EmptyVBox"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.46, 0.57, 0.73, 1)
+theme_override_font_sizes/font_size = 11
+text = "Select a discovered user to start chatting.\nMessages stay inside your LAN and remain compatible with old LANNIES clients."
+horizontal_alignment = 1
+autowrap_mode = 2
+
+[node name="EmptyFeatures" type="Label" parent="Background/VBoxContainer/BodyHBox/ChatView/VBoxContainer/EmptyState/EmptyVBox"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.3, 0.63, 1, 1)
+theme_override_font_sizes/font_size = 10
+text = "PRIVATE   •   FAST   •   OFFLINE-FIRST"
+horizontal_alignment = 1
+
+[node name="NoChatLabel" type="Label" parent="Background/VBoxContainer/BodyHBox/ChatView/VBoxContainer"]
+unique_name_in_owner = true
+visible = false
+layout_mode = 2
+text = "Select a conversation"
+
 [node name="InputMargin" type="MarginContainer" parent="Background/VBoxContainer/BodyHBox/ChatView/VBoxContainer"]
 layout_mode = 2
-theme_override_constants/margin_left = 12
-theme_override_constants/margin_top = 8
-theme_override_constants/margin_right = 12
-theme_override_constants/margin_bottom = 12
+theme_override_constants/margin_left = 16
+theme_override_constants/margin_top = 10
+theme_override_constants/margin_right = 16
+theme_override_constants/margin_bottom = 15
 
 [node name="InputPanel" type="PanelContainer" parent="Background/VBoxContainer/BodyHBox/ChatView/VBoxContainer/InputMargin"]
 unique_name_in_owner = true
-custom_minimum_size = Vector2(0, 52)
+custom_minimum_size = Vector2(0, 56)
 layout_mode = 2
 theme_override_styles/panel = SubResource("InputStyle")
 
 [node name="InputHBox" type="HBoxContainer" parent="Background/VBoxContainer/BodyHBox/ChatView/VBoxContainer/InputMargin/InputPanel"]
 layout_mode = 2
-theme_override_constants/separation = 6
+theme_override_constants/separation = 7
 
 [node name="AttachButton" type="Button" parent="Background/VBoxContainer/BodyHBox/ChatView/VBoxContainer/InputMargin/InputPanel/InputHBox"]
-custom_minimum_size = Vector2(30, 30)
+custom_minimum_size = Vector2(34, 34)
 layout_mode = 2
 size_flags_vertical = 4
-theme_override_colors/font_color = Color(0.5, 0.62, 0.82, 1)
-theme_override_font_sizes/font_size = 16
-theme_override_styles/normal = SubResource("IconButtonStyle")
-theme_override_styles/hover = SubResource("IconButtonHover")
+theme_override_colors/font_color = Color(0.5, 0.64, 0.86, 1)
+theme_override_font_sizes/font_size = 17
+theme_override_styles/normal = SubResource("IconNormal")
+theme_override_styles/hover = SubResource("IconHover")
 text = "+"
 
 [node name="MessageInput" type="TextEdit" parent="Background/VBoxContainer/BodyHBox/ChatView/VBoxContainer/InputMargin/InputPanel/InputHBox"]
 unique_name_in_owner = true
-custom_minimum_size = Vector2(0, 32)
+custom_minimum_size = Vector2(0, 36)
 layout_mode = 2
 size_flags_horizontal = 3
-theme_override_colors/caret_color = Color(0.22, 0.53, 1, 1)
-theme_override_colors/font_color = Color(0.9, 0.93, 0.98, 1)
-theme_override_colors/font_placeholder_color = Color(0.42, 0.5, 0.64, 1)
+theme_override_colors/caret_color = Color(0.25, 0.56, 1, 1)
+theme_override_colors/font_color = Color(0.91, 0.94, 0.99, 1)
+theme_override_colors/font_placeholder_color = Color(0.42, 0.52, 0.68, 1)
 theme_override_font_sizes/font_size = 11
 theme_override_styles/normal = SubResource("EmptyStyle")
 theme_override_styles/focus = SubResource("EmptyStyle")
@@ -492,11 +547,11 @@ caret_blink = true
 
 [node name="SendButton" type="Button" parent="Background/VBoxContainer/BodyHBox/ChatView/VBoxContainer/InputMargin/InputPanel/InputHBox"]
 unique_name_in_owner = true
-custom_minimum_size = Vector2(34, 34)
+custom_minimum_size = Vector2(38, 38)
 layout_mode = 2
 size_flags_vertical = 4
 theme_override_colors/font_color = Color(1, 1, 1, 1)
-theme_override_font_sizes/font_size = 15
+theme_override_font_sizes/font_size = 16
 theme_override_styles/normal = SubResource("SendStyle")
 theme_override_styles/hover = SubResource("SendStyle")
 theme_override_styles/pressed = SubResource("SendStyle")
@@ -504,7 +559,7 @@ text = "➤"
 
 [node name="FilesHistory" type="Panel" parent="Background/VBoxContainer/BodyHBox"]
 unique_name_in_owner = true
-custom_minimum_size = Vector2(150, 0)
+custom_minimum_size = Vector2(220, 0)
 layout_mode = 2
 theme_override_styles/panel = SubResource("RightStyle")
 
@@ -513,39 +568,49 @@ layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
-offset_left = 10.0
-offset_top = 12.0
-offset_right = -10.0
-offset_bottom = -10.0
+offset_left = 14.0
+offset_top = 15.0
+offset_right = -14.0
+offset_bottom = -13.0
 grow_horizontal = 2
 grow_vertical = 2
-theme_override_constants/separation = 8
+theme_override_constants/separation = 11
 
 [node name="Tabs" type="HBoxContainer" parent="Background/VBoxContainer/BodyHBox/FilesHistory/RightVBox"]
 layout_mode = 2
-theme_override_constants/separation = 10
+theme_override_constants/separation = 18
 
 [node name="FilesTab" type="Label" parent="Background/VBoxContainer/BodyHBox/FilesHistory/RightVBox/Tabs"]
 layout_mode = 2
-theme_override_colors/font_color = Color(0.28, 0.55, 1, 1)
-theme_override_font_sizes/font_size = 11
-text = "Files"
+theme_override_colors/font_color = Color(0.3, 0.58, 1, 1)
+theme_override_font_sizes/font_size = 12
+text = "FILES"
 
 [node name="HistoryTab" type="Label" parent="Background/VBoxContainer/BodyHBox/FilesHistory/RightVBox/Tabs"]
 layout_mode = 2
-theme_override_colors/font_color = Color(0.48, 0.58, 0.72, 1)
-theme_override_font_sizes/font_size = 11
-text = "History"
+theme_override_colors/font_color = Color(0.47, 0.58, 0.75, 1)
+theme_override_font_sizes/font_size = 12
+text = "HISTORY"
 
 [node name="SharedCard" type="PanelContainer" parent="Background/VBoxContainer/BodyHBox/FilesHistory/RightVBox"]
 layout_mode = 2
 theme_override_styles/panel = SubResource("CardStyle")
 
-[node name="SharedLabel" type="Label" parent="Background/VBoxContainer/BodyHBox/FilesHistory/RightVBox/SharedCard"]
+[node name="SharedVBox" type="VBoxContainer" parent="Background/VBoxContainer/BodyHBox/FilesHistory/RightVBox/SharedCard"]
 layout_mode = 2
-theme_override_colors/font_color = Color(0.72, 0.79, 0.9, 1)
+theme_override_constants/separation = 5
+
+[node name="SharedTitle" type="Label" parent="Background/VBoxContainer/BodyHBox/FilesHistory/RightVBox/SharedCard/SharedVBox"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.82, 0.87, 0.96, 1)
+theme_override_font_sizes/font_size = 11
+text = "Shared Files"
+
+[node name="SharedHint" type="Label" parent="Background/VBoxContainer/BodyHBox/FilesHistory/RightVBox/SharedCard/SharedVBox"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.43, 0.53, 0.69, 1)
 theme_override_font_sizes/font_size = 10
-text = "Shared files will appear here"
+text = "Files received from the selected user will appear here."
 autowrap_mode = 2
 
 [node name="HistoryCard" type="PanelContainer" parent="Background/VBoxContainer/BodyHBox/FilesHistory/RightVBox"]
@@ -553,13 +618,33 @@ layout_mode = 2
 size_flags_vertical = 3
 theme_override_styles/panel = SubResource("CardStyle")
 
-[node name="HistoryLabel" type="Label" parent="Background/VBoxContainer/BodyHBox/FilesHistory/RightVBox/HistoryCard"]
+[node name="HistoryVBox" type="VBoxContainer" parent="Background/VBoxContainer/BodyHBox/FilesHistory/RightVBox/HistoryCard"]
 layout_mode = 2
-theme_override_colors/font_color = Color(0.48, 0.58, 0.72, 1)
+theme_override_constants/separation = 6
+
+[node name="HistoryTitle" type="Label" parent="Background/VBoxContainer/BodyHBox/FilesHistory/RightVBox/HistoryCard/HistoryVBox"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.82, 0.87, 0.96, 1)
+theme_override_font_sizes/font_size = 11
+text = "Conversation History"
+
+[node name="HistoryHint" type="Label" parent="Background/VBoxContainer/BodyHBox/FilesHistory/RightVBox/HistoryCard/HistoryVBox"]
+layout_mode = 2
+size_flags_vertical = 3
+theme_override_colors/font_color = Color(0.43, 0.53, 0.69, 1)
 theme_override_font_sizes/font_size = 10
-text = "Conversation history\nis stored locally."
+text = "Your local message history is available when a conversation is selected."
 autowrap_mode = 2
-vertical_alignment = 1
+
+[node name="SecurityCard" type="PanelContainer" parent="Background/VBoxContainer/BodyHBox/FilesHistory/RightVBox"]
+layout_mode = 2
+theme_override_styles/panel = SubResource("CardStyle")
+
+[node name="SecurityLabel" type="Label" parent="Background/VBoxContainer/BodyHBox/FilesHistory/RightVBox/SecurityCard"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.34, 0.82, 0.52, 1)
+theme_override_font_sizes/font_size = 10
+text = "●  LAN connection active\n    Port 50000 ready"
 
 [node name="RefreshButton" type="Button" parent="."]
 visible = false
