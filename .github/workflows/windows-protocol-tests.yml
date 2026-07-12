@@ -1,0 +1,26 @@
+name: Windows Protocol Tests
+
+on:
+  push:
+    branches: [ main ]
+    paths:
+      - 'WindowsLANMessenger/CydLAN.Protocol/**'
+      - 'WindowsLANMessenger/CydLAN.Protocol.Tests/**'
+      - '.github/workflows/windows-protocol-tests.yml'
+  pull_request:
+    paths:
+      - 'WindowsLANMessenger/CydLAN.Protocol/**'
+      - 'WindowsLANMessenger/CydLAN.Protocol.Tests/**'
+
+jobs:
+  protocol-tests:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '8.0.x'
+      - name: Restore
+        run: dotnet restore WindowsLANMessenger/CydLAN.Protocol.Tests/CydLAN.Protocol.Tests.csproj
+      - name: Test
+        run: dotnet test WindowsLANMessenger/CydLAN.Protocol.Tests/CydLAN.Protocol.Tests.csproj --configuration Release --no-restore
