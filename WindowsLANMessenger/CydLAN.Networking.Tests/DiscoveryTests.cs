@@ -1,6 +1,7 @@
 using CydLAN.Networking;
 using CydLAN.Protocol;
 using System.Net;
+using Xunit;
 
 namespace CydLAN.Networking.Tests;
 
