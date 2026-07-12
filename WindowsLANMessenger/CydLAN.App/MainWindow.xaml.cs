@@ -24,10 +24,7 @@ public sealed partial class MainWindow : Window
     private void ConfigureWindow()
     {
         ExtendsContentIntoTitleBar = true;
-        SetTitleBar(null);
-
         AppWindow.Resize(new SizeInt32(1280, 780));
-        AppWindow.SetIcon("Assets\\CydLAN.ico");
 
         if (MicaController.IsSupported())
         {
