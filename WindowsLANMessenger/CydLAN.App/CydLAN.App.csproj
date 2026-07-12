@@ -23,5 +23,6 @@
 
   <ItemGroup>
     <ProjectReference Include="..\CydLAN.Protocol\CydLAN.Protocol.csproj" />
+    <ProjectReference Include="..\CydLAN.Networking\CydLAN.Networking.csproj" />
   </ItemGroup>
 </Project>
