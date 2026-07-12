@@ -34,6 +34,7 @@ public sealed partial class MainWindow : Window
     private void ConfigureWindow()
     {
         ExtendsContentIntoTitleBar = true;
+        SetTitleBar(AppTitleBar);
         AppWindow.Resize(new SizeInt32(1280, 780));
 
         if (MicaController.IsSupported())
@@ -56,6 +57,7 @@ public sealed partial class MainWindow : Window
 
             if (_discovery.Adapter is not null && _discovery.LocalUserId is not null)
             {
+                ConnectionAddress.Text = $"{_discovery.Adapter.Address} · UDP 50000";
                 AddOrUpdateUser(new LanUserItem(
                     _discovery.LocalUserId,
                     "Cyd (You)",
@@ -64,6 +66,8 @@ public sealed partial class MainWindow : Window
                     "CY",
                     "#31C96B",
                     0));
+                ChatName.Text = "Select a LAN user";
+                ChatStatus.Text = "Discovery active";
             }
         }
         catch (Exception exception)
@@ -76,9 +80,8 @@ public sealed partial class MainWindow : Window
     {
         DispatcherQueue.TryEnqueue(() =>
         {
-            var initials = peer.Address.Split('.') is { Length: > 0 } parts
-                ? $"L{parts[^1]}"
-                : "LAN";
+            var parts = peer.Address.Split('.');
+            var initials = parts.Length > 0 ? $"L{parts[^1]}" : "LAN";
 
             AddOrUpdateUser(new LanUserItem(
                 peer.UserId,
@@ -101,6 +104,7 @@ public sealed partial class MainWindow : Window
             }
 
             Users.Remove(user);
+            UpdateUserCounts();
         });
     }
 
@@ -118,10 +122,20 @@ public sealed partial class MainWindow : Window
 
         _usersById.Add(user.UserId, user);
         Users.Add(user);
+        UpdateUserCounts();
+    }
+
+    private void UpdateUserCounts()
+    {
+        var online = Users.Count(user => user.Status.Equals("Online", StringComparison.OrdinalIgnoreCase));
+        AllFilter.Content = $"All ({Users.Count})";
+        OnlineFilter.Content = $"Online ({online})";
+        OnlineCount.Text = $"{online} online";
     }
 
     private void ShowDiscoveryError(string message)
     {
+        ConnectionAddress.Text = "No active LAN adapter";
         ChatName.Text = "LAN discovery unavailable";
         ChatStatus.Text = message;
         ChatStatus.Foreground = new SolidColorBrush(ColorHelper.FromArgb(255, 231, 184, 75));
