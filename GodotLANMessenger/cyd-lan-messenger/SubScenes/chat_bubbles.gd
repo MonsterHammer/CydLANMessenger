@@ -1,11 +1,11 @@
 extends PanelContainer
 
-const CLR_SENT := Color("#185ee8")
-const CLR_RECEIVED := Color("#111c2d")
-const CLR_SENT_TEXT := Color("#f8fbff")
+const CLR_SENT := Color("#123f91")
+const CLR_RECEIVED := Color("#101b2b")
+const CLR_SENT_TEXT := Color("#f5f8ff")
 const CLR_RECEIVED_TEXT := Color("#e7edf7")
-const CLR_SENT_TIME := Color(0.76, 0.85, 1.0, 0.72)
-const CLR_RECEIVED_TIME := Color(0.53, 0.62, 0.76, 0.78)
+const CLR_SENT_TIME := Color(0.72, 0.82, 1.0, 0.7)
+const CLR_RECEIVED_TIME := Color(0.5, 0.59, 0.72, 0.76)
 const MIN_WIDTH := 78.0
 const TEXT_PADDING := 18.0
 
@@ -37,23 +37,24 @@ func _apply() -> void:
 	time_label.text = _message_time
 	time_label.add_theme_color_override("font_color", CLR_SENT_TIME if _is_sent else CLR_RECEIVED_TIME)
 
-	var style = StyleBoxFlat.new()
+	var style := StyleBoxFlat.new()
 	style.bg_color = CLR_SENT if _is_sent else CLR_RECEIVED
 	style.border_width_left = 1
 	style.border_width_top = 1
 	style.border_width_right = 1
 	style.border_width_bottom = 1
-	style.border_color = Color("#2a78ff") if _is_sent else Color("#20314b")
-	style.set_corner_radius_all(12)
+	style.border_color = Color("#245fc0") if _is_sent else Color("#223149")
+	style.set_corner_radius_all(5)
 	if _is_sent:
-		style.corner_radius_bottom_right = 4
+		style.corner_radius_bottom_right = 2
 	else:
-		style.corner_radius_bottom_left = 4
-	style.corner_detail = 6
+		style.corner_radius_bottom_left = 2
+	style.corner_detail = 4
 	style.content_margin_left = 12
 	style.content_margin_top = 8
 	style.content_margin_right = 12
 	style.content_margin_bottom = 7
+	style.shadow_size = 0
 	add_theme_stylebox_override("panel", style)
 
 func _message_width(text: String) -> float:
