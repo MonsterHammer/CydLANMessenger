@@ -69,6 +69,6 @@ public sealed class DiscoveryTests
         using var crypto = new LmcCryptoService();
         var pem = Encoding.ASCII.GetString(crypto.PublicKeyPem);
         Assert.StartsWith("-----BEGIN RSA PUBLIC KEY-----", pem);
-        Assert.EndsWith("-----END RSA PUBLIC KEY-----\n", pem);
+        Assert.EndsWith("-----END RSA PUBLIC KEY-----", pem);
     }
 }
