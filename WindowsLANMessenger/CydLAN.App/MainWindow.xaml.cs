@@ -1,3 +1,4 @@
+using CydLAN.Networking;
 using Microsoft.UI;
 using Microsoft.UI.Composition.SystemBackdrops;
 using Microsoft.UI.Windowing;
@@ -11,14 +12,23 @@ namespace CydLAN.App;
 
 public sealed partial class MainWindow : Window
 {
+    private readonly LmcDiscoveryService _discovery = new();
+    private readonly Dictionary<string, LanUserItem> _usersById = new(StringComparer.Ordinal);
+
     public ObservableCollection<LanUserItem> Users { get; } = new();
 
     public MainWindow()
     {
         InitializeComponent();
         ConfigureWindow();
-        LoadDesignPreviewData();
         UsersList.ItemsSource = Users;
+
+        _discovery.PeerAnnounced += Discovery_PeerAnnounced;
+        _discovery.PeerDeparted += Discovery_PeerDeparted;
+        _discovery.Error += Discovery_Error;
+        Closed += MainWindow_Closed;
+
+        _ = InitializeDiscoveryAsync();
     }
 
     private void ConfigureWindow()
@@ -38,15 +48,91 @@ public sealed partial class MainWindow : Window
         }
     }
 
-    private void LoadDesignPreviewData()
+    private async Task InitializeDiscoveryAsync()
     {
-        Users.Add(new LanUserItem("Alex PC", "Online", "Windows 11", "AP", "#31C96B", 2));
-        Users.Add(new LanUserItem("Cyd (You)", "Online", "Windows 11", "CY", "#31C96B", 0));
-        Users.Add(new LanUserItem("Maya", "Online", "Windows 10", "MY", "#31C96B", 0));
-        Users.Add(new LanUserItem("John-Laptop", "Away", "Windows 11", "JL", "#E7B84B", 0));
-        Users.Add(new LanUserItem("LANNIE-PC", "Offline", "Last seen 1h ago", "LP", "#7F8997", 0));
-        Users.Add(new LanUserItem("OldDesktop", "Offline", "Last seen yesterday", "OD", "#7F8997", 0));
-        Users.Add(new LanUserItem("Guest-Node", "Offline", "", "GN", "#7F8997", 0));
+        try
+        {
+            await _discovery.StartAsync();
+
+            if (_discovery.Adapter is not null && _discovery.LocalUserId is not null)
+            {
+                AddOrUpdateUser(new LanUserItem(
+                    _discovery.LocalUserId,
+                    "Cyd (You)",
+                    "Online",
+                    _discovery.Adapter.Address.ToString(),
+                    "CY",
+                    "#31C96B",
+                    0));
+            }
+        }
+        catch (Exception exception)
+        {
+            ShowDiscoveryError(exception.Message);
+        }
+    }
+
+    private void Discovery_PeerAnnounced(object? sender, LmcPeerAnnouncement peer)
+    {
+        DispatcherQueue.TryEnqueue(() =>
+        {
+            var initials = peer.Address.Split('.') is { Length: > 0 } parts
+                ? $"L{parts[^1]}"
+                : "LAN";
+
+            AddOrUpdateUser(new LanUserItem(
+                peer.UserId,
+                $"LAN User · {peer.Address}",
+                "Online",
+                $"LANNIES peer · {peer.Address}",
+                initials,
+                "#31C96B",
+                0));
+        });
+    }
+
+    private void Discovery_PeerDeparted(object? sender, LmcPeerAnnouncement peer)
+    {
+        DispatcherQueue.TryEnqueue(() =>
+        {
+            if (!_usersById.Remove(peer.UserId, out var user))
+            {
+                return;
+            }
+
+            Users.Remove(user);
+        });
+    }
+
+    private void Discovery_Error(object? sender, Exception exception)
+    {
+        DispatcherQueue.TryEnqueue(() => ShowDiscoveryError(exception.Message));
+    }
+
+    private void AddOrUpdateUser(LanUserItem user)
+    {
+        if (_usersById.ContainsKey(user.UserId))
+        {
+            return;
+        }
+
+        _usersById.Add(user.UserId, user);
+        Users.Add(user);
+    }
+
+    private void ShowDiscoveryError(string message)
+    {
+        ChatName.Text = "LAN discovery unavailable";
+        ChatStatus.Text = message;
+        ChatStatus.Foreground = new SolidColorBrush(ColorHelper.FromArgb(255, 231, 184, 75));
+    }
+
+    private async void MainWindow_Closed(object sender, WindowEventArgs args)
+    {
+        _discovery.PeerAnnounced -= Discovery_PeerAnnounced;
+        _discovery.PeerDeparted -= Discovery_PeerDeparted;
+        _discovery.Error -= Discovery_Error;
+        await _discovery.DisposeAsync();
     }
 
     private void UsersList_ItemClick(object sender, ItemClickEventArgs e)
@@ -64,8 +150,16 @@ public sealed partial class MainWindow : Window
 
 public sealed class LanUserItem
 {
-    public LanUserItem(string name, string status, string device, string initials, string statusColor, int unreadCount)
+    public LanUserItem(
+        string userId,
+        string name,
+        string status,
+        string device,
+        string initials,
+        string statusColor,
+        int unreadCount)
     {
+        UserId = userId;
         Name = name;
         Status = status;
         Device = device;
@@ -79,6 +173,7 @@ public sealed class LanUserItem
         UnreadVisibility = unreadCount > 0 ? Visibility.Visible : Visibility.Collapsed;
     }
 
+    public string UserId { get; }
     public string Name { get; }
     public string Status { get; }
     public string Device { get; }
