@@ -256,7 +256,7 @@ public sealed partial class MainWindow : Window
             Background = new SolidColorBrush(outgoing
                 ? ColorHelper.FromArgb(255, 23, 72, 160)
                 : ColorHelper.FromArgb(255, 24, 36, 51)),
-            CornerRadius = new CornerRadius(5),
+            CornerRadius = new CornerRadius(2),
             Padding = new Thickness(12, 9, 12, 9),
             HorizontalAlignment = outgoing ? HorizontalAlignment.Right : HorizontalAlignment.Left,
             MaxWidth = 520,
