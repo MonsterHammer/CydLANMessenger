@@ -9,7 +9,6 @@
     <RuntimeIdentifiers>win-x64</RuntimeIdentifiers>
     <PublishProfile>win-x64</PublishProfile>
     <UseWinUI>true</UseWinUI>
-    <UseXamlCompilerExecutable>false</UseXamlCompilerExecutable>
     <EnableMsixTooling>true</EnableMsixTooling>
     <WindowsPackageType>None</WindowsPackageType>
     <WindowsAppSDKSelfContained>true</WindowsAppSDKSelfContained>
