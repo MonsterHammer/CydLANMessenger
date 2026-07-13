@@ -25,17 +25,35 @@ jobs:
         shell: pwsh
         run: |
           dotnet msbuild CydLAN.App/CydLAN.App.csproj -p:Platform=x64 -p:Configuration=Release -getProperty:UseXamlCompilerExecutable -getProperty:MSBuildRuntimeType -getProperty:WindowsAppSDKVersion -getProperty:TargetFramework > evaluated-properties.txt
-      - name: Build with explicit managed compiler
+      - name: Build with default executable compiler
         shell: pwsh
         continue-on-error: true
         run: |
-          dotnet build CydLAN.App/CydLAN.App.csproj --configuration Release --no-restore -p:Platform=x64 -p:UseXamlCompilerExecutable=false -v:diag -bl:winui.binlog *> winui-build.log
+          dotnet build CydLAN.App/CydLAN.App.csproj --configuration Release --no-restore -p:Platform=x64 -p:UseXamlCompilerExecutable=true -v:diag -bl:default-winui.binlog *> default-winui-build.log
+      - name: Re-run XAML compiler directly
+        shell: pwsh
+        if: always()
+        continue-on-error: true
+        run: |
+          $input = Get-ChildItem CydLAN.App/obj -Recurse -Filter input.json | Select-Object -First 1
+          $compiler = Get-ChildItem "$env:USERPROFILE/.nuget/packages/microsoft.windowsappsdk.winui" -Recurse -Filter XamlCompiler.exe | Where-Object { $_.FullName -match 'net472' } | Sort-Object FullName -Descending | Select-Object -First 1
+          "Input: $($input.FullName)`nCompiler: $($compiler.FullName)" | Set-Content direct-compiler-paths.txt
+          if ($input -and $compiler) {
+            $output = Join-Path $input.DirectoryName 'manual-output.json'
+            & $compiler.FullName $input.FullName $output *> direct-xaml-compiler.log
+            "ExitCode=$LASTEXITCODE" | Add-Content direct-xaml-compiler.log
+          }
+      - name: Build with managed compiler for comparison
+        shell: pwsh
+        continue-on-error: true
+        run: |
+          dotnet build CydLAN.App/CydLAN.App.csproj --configuration Release --no-restore -p:Platform=x64 -p:UseXamlCompilerExecutable=false -v:diag -bl:managed-winui.binlog *> managed-winui-build.log
       - name: List compiler files
         shell: pwsh
         if: always()
         run: |
           Get-ChildItem CydLAN.App/obj -Recurse -Force | Select-Object FullName,Length | Format-Table -AutoSize | Out-String -Width 4096 | Set-Content obj-files.txt
-          Get-ChildItem CydLAN.App/obj -Recurse -Include input.json,output.json,XamlSaveStateFile.xml,*.g.cs,*.xaml | ForEach-Object {
+          Get-ChildItem CydLAN.App/obj -Recurse -Include input.json,output.json,manual-output.json,XamlSaveStateFile.xml,*.g.cs,*.xaml | ForEach-Object {
             "`n===== $($_.FullName) =====`n" | Add-Content compiler-files.txt
             Get-Content $_.FullName -Raw -ErrorAction SilentlyContinue | Add-Content compiler-files.txt
           }
@@ -46,8 +64,12 @@ jobs:
           path: |
             WindowsLANMessenger/package-updates.txt
             WindowsLANMessenger/evaluated-properties.txt
-            WindowsLANMessenger/winui-build.log
-            WindowsLANMessenger/winui.binlog
+            WindowsLANMessenger/default-winui-build.log
+            WindowsLANMessenger/default-winui.binlog
+            WindowsLANMessenger/direct-compiler-paths.txt
+            WindowsLANMessenger/direct-xaml-compiler.log
+            WindowsLANMessenger/managed-winui-build.log
+            WindowsLANMessenger/managed-winui.binlog
             WindowsLANMessenger/obj-files.txt
             WindowsLANMessenger/compiler-files.txt
             WindowsLANMessenger/CydLAN.App/obj/**
