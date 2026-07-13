@@ -1,0 +1,48 @@
+name: Diagnose WinUI Compiler
+
+on:
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  diagnose:
+    runs-on: windows-latest
+    defaults:
+      run:
+        working-directory: WindowsLANMessenger
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '8.0.x'
+      - name: Restore
+        run: dotnet restore CydLAN.App/CydLAN.App.csproj -p:Platform=x64
+      - name: Dump evaluated project
+        shell: pwsh
+        run: |
+          dotnet msbuild CydLAN.App/CydLAN.App.csproj -p:Platform=x64 -p:Configuration=Release -getProperty:UseXamlCompilerExecutable -getProperty:MSBuildRuntimeType -getProperty:WindowsAppSDKVersion -getProperty:TargetFramework > evaluated-properties.txt
+      - name: Build with explicit managed compiler
+        shell: pwsh
+        continue-on-error: true
+        run: |
+          dotnet build CydLAN.App/CydLAN.App.csproj --configuration Release --no-restore -p:Platform=x64 -p:UseXamlCompilerExecutable=false -v:diag -bl:winui.binlog *> winui-build.log
+      - name: List compiler files
+        shell: pwsh
+        if: always()
+        run: |
+          Get-ChildItem CydLAN.App/obj -Recurse -Force | Select-Object FullName,Length | Format-Table -AutoSize | Out-String -Width 4096 | Set-Content obj-files.txt
+          Get-ChildItem CydLAN.App/obj -Recurse -Include input.json,output.json,XamlSaveStateFile.xml,*.g.cs,*.xaml | ForEach-Object {
+            "`n===== $($_.FullName) =====`n" | Add-Content compiler-files.txt
+            Get-Content $_.FullName -Raw -ErrorAction SilentlyContinue | Add-Content compiler-files.txt
+          }
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: winui-compiler-diagnostics
+          path: |
+            WindowsLANMessenger/evaluated-properties.txt
+            WindowsLANMessenger/winui-build.log
+            WindowsLANMessenger/winui.binlog
+            WindowsLANMessenger/obj-files.txt
+            WindowsLANMessenger/compiler-files.txt
+            WindowsLANMessenger/CydLAN.App/obj/**
