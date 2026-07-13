@@ -1,0 +1,16 @@
+C:\Users\User\Desktop\Codex Projects\LANMessengerRev\CydLANMesenger\WindowsLANMessenger\CydLAN.Networking\bin\x64\Debug\net8.0-windows10.0.19041.0\CydLAN.Networking.deps.json
+C:\Users\User\Desktop\Codex Projects\LANMessengerRev\CydLANMesenger\WindowsLANMessenger\CydLAN.Networking\bin\x64\Debug\net8.0-windows10.0.19041.0\CydLAN.Networking.dll
+C:\Users\User\Desktop\Codex Projects\LANMessengerRev\CydLANMesenger\WindowsLANMessenger\CydLAN.Networking\bin\x64\Debug\net8.0-windows10.0.19041.0\CydLAN.Networking.pdb
+C:\Users\User\Desktop\Codex Projects\LANMessengerRev\CydLANMesenger\WindowsLANMessenger\CydLAN.Networking\bin\x64\Debug\net8.0-windows10.0.19041.0\CydLAN.Protocol.dll
+C:\Users\User\Desktop\Codex Projects\LANMessengerRev\CydLANMesenger\WindowsLANMessenger\CydLAN.Networking\bin\x64\Debug\net8.0-windows10.0.19041.0\CydLAN.Protocol.pdb
+C:\Users\User\Desktop\Codex Projects\LANMessengerRev\CydLANMesenger\WindowsLANMessenger\CydLAN.Networking\obj\x64\Debug\net8.0-windows10.0.19041.0\CydLAN.Networking.csproj.AssemblyReference.cache
+C:\Users\User\Desktop\Codex Projects\LANMessengerRev\CydLANMesenger\WindowsLANMessenger\CydLAN.Networking\obj\x64\Debug\net8.0-windows10.0.19041.0\CydLAN.Networking.GeneratedMSBuildEditorConfig.editorconfig
+C:\Users\User\Desktop\Codex Projects\LANMessengerRev\CydLANMesenger\WindowsLANMessenger\CydLAN.Networking\obj\x64\Debug\net8.0-windows10.0.19041.0\CydLAN.Networking.AssemblyInfoInputs.cache
+C:\Users\User\Desktop\Codex Projects\LANMessengerRev\CydLANMesenger\WindowsLANMessenger\CydLAN.Networking\obj\x64\Debug\net8.0-windows10.0.19041.0\CydLAN.Networking.AssemblyInfo.cs
+C:\Users\User\Desktop\Codex Projects\LANMessengerRev\CydLANMesenger\WindowsLANMessenger\CydLAN.Networking\obj\x64\Debug\net8.0-windows10.0.19041.0\CydLAN.Networking.csproj.CoreCompileInputs.cache
+C:\Users\User\Desktop\Codex Projects\LANMessengerRev\CydLANMesenger\WindowsLANMessenger\CydLAN.Networking\obj\x64\Debug\net8.0-windows10.0.19041.0\CydLAN.Networking.sourcelink.json
+C:\Users\User\Desktop\Codex Projects\LANMessengerRev\CydLANMesenger\WindowsLANMessenger\CydLAN.Networking\obj\x64\Debug\net8.0-windows10.0.19041.0\CydLAN.N.BD8DD63E.Up2Date
+C:\Users\User\Desktop\Codex Projects\LANMessengerRev\CydLANMesenger\WindowsLANMessenger\CydLAN.Networking\obj\x64\Debug\net8.0-windows10.0.19041.0\CydLAN.Networking.dll
+C:\Users\User\Desktop\Codex Projects\LANMessengerRev\CydLANMesenger\WindowsLANMessenger\CydLAN.Networking\obj\x64\Debug\net8.0-windows10.0.19041.0\refint\CydLAN.Networking.dll
+C:\Users\User\Desktop\Codex Projects\LANMessengerRev\CydLANMesenger\WindowsLANMessenger\CydLAN.Networking\obj\x64\Debug\net8.0-windows10.0.19041.0\CydLAN.Networking.pdb
+C:\Users\User\Desktop\Codex Projects\LANMessengerRev\CydLANMesenger\WindowsLANMessenger\CydLAN.Networking\obj\x64\Debug\net8.0-windows10.0.19041.0\ref\CydLAN.Networking.dll

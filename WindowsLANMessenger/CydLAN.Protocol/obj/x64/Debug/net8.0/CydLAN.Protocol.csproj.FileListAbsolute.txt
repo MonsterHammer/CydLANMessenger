@@ -1,0 +1,12 @@
+C:\Users\User\Desktop\Codex Projects\LANMessengerRev\CydLANMesenger\WindowsLANMessenger\CydLAN.Protocol\bin\x64\Debug\net8.0\CydLAN.Protocol.deps.json
+C:\Users\User\Desktop\Codex Projects\LANMessengerRev\CydLANMesenger\WindowsLANMessenger\CydLAN.Protocol\bin\x64\Debug\net8.0\CydLAN.Protocol.dll
+C:\Users\User\Desktop\Codex Projects\LANMessengerRev\CydLANMesenger\WindowsLANMessenger\CydLAN.Protocol\bin\x64\Debug\net8.0\CydLAN.Protocol.pdb
+C:\Users\User\Desktop\Codex Projects\LANMessengerRev\CydLANMesenger\WindowsLANMessenger\CydLAN.Protocol\obj\x64\Debug\net8.0\CydLAN.Protocol.GeneratedMSBuildEditorConfig.editorconfig
+C:\Users\User\Desktop\Codex Projects\LANMessengerRev\CydLANMesenger\WindowsLANMessenger\CydLAN.Protocol\obj\x64\Debug\net8.0\CydLAN.Protocol.AssemblyInfoInputs.cache
+C:\Users\User\Desktop\Codex Projects\LANMessengerRev\CydLANMesenger\WindowsLANMessenger\CydLAN.Protocol\obj\x64\Debug\net8.0\CydLAN.Protocol.AssemblyInfo.cs
+C:\Users\User\Desktop\Codex Projects\LANMessengerRev\CydLANMesenger\WindowsLANMessenger\CydLAN.Protocol\obj\x64\Debug\net8.0\CydLAN.Protocol.csproj.CoreCompileInputs.cache
+C:\Users\User\Desktop\Codex Projects\LANMessengerRev\CydLANMesenger\WindowsLANMessenger\CydLAN.Protocol\obj\x64\Debug\net8.0\CydLAN.Protocol.sourcelink.json
+C:\Users\User\Desktop\Codex Projects\LANMessengerRev\CydLANMesenger\WindowsLANMessenger\CydLAN.Protocol\obj\x64\Debug\net8.0\CydLAN.Protocol.dll
+C:\Users\User\Desktop\Codex Projects\LANMessengerRev\CydLANMesenger\WindowsLANMessenger\CydLAN.Protocol\obj\x64\Debug\net8.0\refint\CydLAN.Protocol.dll
+C:\Users\User\Desktop\Codex Projects\LANMessengerRev\CydLANMesenger\WindowsLANMessenger\CydLAN.Protocol\obj\x64\Debug\net8.0\CydLAN.Protocol.pdb
+C:\Users\User\Desktop\Codex Projects\LANMessengerRev\CydLANMesenger\WindowsLANMessenger\CydLAN.Protocol\obj\x64\Debug\net8.0\ref\CydLAN.Protocol.dll

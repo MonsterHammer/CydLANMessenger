@@ -1,0 +1,51 @@
+﻿<Window
+    x:Class="CydLAN.App.MainWindow"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    Title="CydLAN Messenger">
+    <Grid Background="#08111D">
+        <Grid.RowDefinitions><RowDefinition Height="64" /><RowDefinition Height="*" /></Grid.RowDefinitions>
+        <Border x:ConnectionId='2' x:Name="AppTitleBar" Grid.Row="0" Background="#0A1422" BorderBrush="#223149" BorderThickness="0,0,0,1" Padding="20,0,150,0">
+            <Grid>
+                <Grid.ColumnDefinitions><ColumnDefinition Width="360" /><ColumnDefinition Width="*" /></Grid.ColumnDefinitions>
+                <StackPanel Orientation="Horizontal" VerticalAlignment="Center" Spacing="12">
+                    <Border Width="36" Height="36" CornerRadius="2" Background="#2563EB"><TextBlock Text="C" HorizontalAlignment="Center" VerticalAlignment="Center" FontSize="18" FontWeight="SemiBold" /></Border>
+                    <StackPanel VerticalAlignment="Center"><TextBlock Text="CydLAN" FontSize="18" FontWeight="SemiBold" /><TextBlock Text="LAN Messenger" FontSize="12" Foreground="#8FA0B7" /></StackPanel>
+                </StackPanel>
+                <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center" Spacing="10">
+                    <Ellipse Width="10" Height="10" Fill="#31C96B" />
+                    <StackPanel><TextBlock Text="Connected to LAN" FontSize="14" FontWeight="SemiBold" /><TextBlock x:ConnectionId='16' x:Name="ConnectionAddress" Text="Detecting adapter..." FontSize="12" Foreground="#8FA0B7" /></StackPanel>
+                </StackPanel>
+            </Grid>
+        </Border>
+        <Grid Grid.Row="1">
+            <Grid.ColumnDefinitions><ColumnDefinition Width="58" /><ColumnDefinition Width="330" /><ColumnDefinition Width="*" /><ColumnDefinition Width="300" /></Grid.ColumnDefinitions>
+            <Border Grid.Column="0" Background="#0A1422" BorderBrush="#223149" BorderThickness="0,0,1,0">
+                <StackPanel Margin="8,14" Spacing="10"><Button Content="☰" Height="42" CornerRadius="2" /><Button Content="U" Height="42" CornerRadius="2" /><Button Content="F" Height="42" CornerRadius="2" /><Button Content="H" Height="42" CornerRadius="2" /><Button Content="S" Height="42" CornerRadius="2" /></StackPanel>
+            </Border>
+            <Border Grid.Column="1" Background="#0A1422" BorderBrush="#223149" BorderThickness="0,0,1,0">
+                <Grid>
+                    <Grid.RowDefinitions><RowDefinition Height="Auto" /><RowDefinition Height="Auto" /><RowDefinition Height="Auto" /><RowDefinition Height="*" /><RowDefinition Height="58" /></Grid.RowDefinitions>
+                    <TextBox Grid.Row="0" Margin="16,16,16,10" PlaceholderText="Search users..." CornerRadius="2" />
+                    <StackPanel Grid.Row="1" Orientation="Horizontal" Spacing="8" Margin="16,0,16,12"><ToggleButton x:ConnectionId='14' x:Name="AllFilter" Content="All (0)" IsChecked="True" CornerRadius="2" /><ToggleButton x:ConnectionId='15' x:Name="OnlineFilter" Content="Online (0)" CornerRadius="2" /><ToggleButton Content="Offline (0)" CornerRadius="2" /></StackPanel>
+                    <TextBlock Grid.Row="2" Text="LAN USERS" FontSize="12" Foreground="#8FA0B7" Margin="16,0,16,10" />
+                    <ListView x:ConnectionId='11' Grid.Row="3" x:Name="UsersList" SelectionMode="Single" IsItemClickEnabled="True"                                 Background="Transparent">
+                        <ListView.ItemContainerStyle><Style TargetType="ListViewItem"><Setter Property="CornerRadius" Value="2" /></Style></ListView.ItemContainerStyle>
+                        <ListView.ItemTemplate><DataTemplate><Grid MinHeight="68" Margin="12,6"><Grid.ColumnDefinitions><ColumnDefinition Width="48" /><ColumnDefinition Width="*" /></Grid.ColumnDefinitions><Grid Width="40" Height="40"><Ellipse Fill="#1A2940" /><TextBlock Text="{Binding Initials}" HorizontalAlignment="Center" VerticalAlignment="Center" FontWeight="SemiBold" /></Grid><StackPanel Grid.Column="1" VerticalAlignment="Center" Spacing="2"><TextBlock Text="{Binding Name}" FontSize="14" FontWeight="SemiBold" /><TextBlock Text="{Binding Status}" FontSize="12" Foreground="{Binding StatusBrush}" /><TextBlock Text="{Binding Device}" FontSize="11" Foreground="#8FA0B7" /></StackPanel></Grid></DataTemplate></ListView.ItemTemplate>
+                    </ListView>
+                    <Border Grid.Row="4" BorderBrush="#223149" BorderThickness="0,1,0,0"><Grid Margin="16,0"><Grid.ColumnDefinitions><ColumnDefinition Width="*" /><ColumnDefinition Width="Auto" /></Grid.ColumnDefinitions><TextBlock x:ConnectionId='12' x:Name="OnlineCount" Text="0 online" VerticalAlignment="Center" FontSize="11" /><TextBlock Grid.Column="1" Text="LANNIES" VerticalAlignment="Center" FontSize="11" Foreground="#8FA0B7" /></Grid></Border>
+                </Grid>
+            </Border>
+            <Grid Grid.Column="2" Background="#08111D">
+                <Grid.RowDefinitions><RowDefinition Height="72" /><RowDefinition Height="*" /><RowDefinition Height="76" /></Grid.RowDefinitions>
+                <Border Grid.Row="0" BorderBrush="#223149" BorderThickness="0,0,0,1"><Grid Margin="20,0"><StackPanel VerticalAlignment="Center"><TextBlock x:ConnectionId='9' x:Name="ChatName" Text="Select a LAN user" FontSize="20" FontWeight="SemiBold" /><TextBlock x:ConnectionId='10' x:Name="ChatStatus" Text="Discovery is starting" FontSize="13" Foreground="#31C96B" /></StackPanel></Grid></Border>
+                <ScrollViewer Grid.Row="1" Padding="20"><StackPanel x:ConnectionId='8' x:Name="MessagesPanel" Spacing="12"><TextBlock Text="Encrypted messages will appear here." HorizontalAlignment="Center" Foreground="#8FA0B7" /></StackPanel></ScrollViewer>
+                <Border Grid.Row="2" Margin="20,8,20,14" Background="#0F1B2B" BorderBrush="#26384F" BorderThickness="1" CornerRadius="2" Padding="8"><Grid><Grid.ColumnDefinitions><ColumnDefinition Width="*" /><ColumnDefinition Width="88" /></Grid.ColumnDefinitions><TextBox x:ConnectionId='6' x:Name="MessageInput" PlaceholderText="Type a message..." BorderThickness="0" Background="Transparent"                                CornerRadius="2" /><Button x:ConnectionId='7' x:Name="SendButton" Grid.Column="1" Content="Send"                          IsEnabled="False" CornerRadius="2" /></Grid></Border>
+            </Grid>
+            <Border Grid.Column="3" Background="#0A1422" BorderBrush="#223149" BorderThickness="1,0,0,0" Padding="20">
+                <StackPanel Spacing="14"><TextBlock Text="PEER DETAILS" FontSize="12" FontWeight="SemiBold" /><TextBlock x:ConnectionId='3' x:Name="PeerIdText" Text="No peer selected" TextWrapping="Wrap" Foreground="#8FA0B7" /><TextBlock x:ConnectionId='4' x:Name="PeerAddressText" Text="" Foreground="#8FA0B7" /><Border Height="1" Background="#223149" Margin="0,4" /><TextBlock Text="SECURITY" FontSize="12" FontWeight="SemiBold" /><TextBlock x:ConnectionId='5' x:Name="SecurityText" Text="Awaiting RSA/AES handshake" TextWrapping="Wrap" Foreground="#8FA0B7" /></StackPanel>
+            </Border>
+        </Grid>
+    </Grid>
+</Window>
+
