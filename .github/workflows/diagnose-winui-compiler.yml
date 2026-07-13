@@ -17,6 +17,10 @@ jobs:
           dotnet-version: '8.0.x'
       - name: Restore
         run: dotnet restore CydLAN.App/CydLAN.App.csproj -p:Platform=x64
+      - name: Query stable package updates
+        shell: pwsh
+        run: |
+          dotnet list CydLAN.App/CydLAN.App.csproj package --outdated --source https://api.nuget.org/v3/index.json *> package-updates.txt
       - name: Dump evaluated project
         shell: pwsh
         run: |
@@ -40,6 +44,7 @@ jobs:
         with:
           name: winui-compiler-diagnostics
           path: |
+            WindowsLANMessenger/package-updates.txt
             WindowsLANMessenger/evaluated-properties.txt
             WindowsLANMessenger/winui-build.log
             WindowsLANMessenger/winui.binlog
