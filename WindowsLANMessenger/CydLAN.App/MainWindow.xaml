@@ -42,7 +42,7 @@
                 <Border Grid.Row="2" Margin="20,8,20,14" Background="#0F1B2B" BorderBrush="#26384F" BorderThickness="1" CornerRadius="5" Padding="8"><Grid><Grid.ColumnDefinitions><ColumnDefinition Width="*" /><ColumnDefinition Width="88" /></Grid.ColumnDefinitions><TextBox x:Name="MessageInput" PlaceholderText="Type a message..." BorderThickness="0" Background="Transparent" KeyDown="MessageInput_KeyDown" /><Button x:Name="SendButton" Grid.Column="1" Content="Send" Click="SendButton_Click" IsEnabled="False" /></Grid></Border>
             </Grid>
             <Border Grid.Column="3" Background="#0A1422" BorderBrush="#223149" BorderThickness="1,0,0,0" Padding="20">
-                <StackPanel Spacing="14"><TextBlock Text="PEER DETAILS" FontSize="12" FontWeight="SemiBold" /><TextBlock x:Name="PeerIdText" Text="No peer selected" TextWrapping="Wrap" Foreground="#8FA0B7" /><TextBlock x:Name="PeerAddressText" Text="" Foreground="#8FA0B7" /><Separator /><TextBlock Text="SECURITY" FontSize="12" FontWeight="SemiBold" /><TextBlock x:Name="SecurityText" Text="Awaiting RSA/AES handshake" TextWrapping="Wrap" Foreground="#8FA0B7" /></StackPanel>
+                <StackPanel Spacing="14"><TextBlock Text="PEER DETAILS" FontSize="12" FontWeight="SemiBold" /><TextBlock x:Name="PeerIdText" Text="No peer selected" TextWrapping="Wrap" Foreground="#8FA0B7" /><TextBlock x:Name="PeerAddressText" Text="" Foreground="#8FA0B7" /><Border Height="1" Background="#223149" Margin="0,4" /><TextBlock Text="SECURITY" FontSize="12" FontWeight="SemiBold" /><TextBlock x:Name="SecurityText" Text="Awaiting RSA/AES handshake" TextWrapping="Wrap" Foreground="#8FA0B7" /></StackPanel>
             </Border>
         </Grid>
     </Grid>
